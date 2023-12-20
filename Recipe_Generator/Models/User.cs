@@ -1,11 +1,12 @@
-﻿using System.ComponentModel.DataAnnotations.Schema;
+﻿using Microsoft.AspNetCore.Identity;
+using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Recipe_Generator.Models
 {
-    public class User :Person
+    public class User : IdentityUser
     {
 
-        public List<Favourite> Favourites { get; set; }
+        //public List<Favourite> Favourites { get; set; }
 
 
     }

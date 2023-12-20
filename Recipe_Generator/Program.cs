@@ -1,5 +1,7 @@
+using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Recipe_Generator.Data;
+using Recipe_Generator.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,8 @@ builder.Services.AddDbContext<RecipeContext>(
      options => options.UseSqlServer(
           builder.Configuration.GetConnectionString("myConnection")
          )
-    ); 
+    );
+builder.Services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<RecipeContext>();
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
