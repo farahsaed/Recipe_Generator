@@ -1,39 +1,45 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Azure;
+using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
-using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+using System.Text.Json;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class UserController : ControllerBase
     {
         private readonly UserManager<User> userManager;
         private readonly IConfiguration configuration;
 
-        public AccountController(UserManager<User> userManager,IConfiguration configuration)
+        public UserController(UserManager<User> userManager,IConfiguration configuration)
         {
             this.userManager = userManager;
             this.configuration = configuration;
         }
 
-        [HttpPost("register")]
-        public async Task<IActionResult> Register(RegisterUserDTO userDTO)
+        [HttpPost]
+        [Route("Register")]
+        [Route("Create User")]
+        public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
             if(ModelState.IsValid)
             {
                 User user = new User();
                 user.UserName =  userDTO.UserName;
                 user.Email = userDTO.Email;
+                user.FirstName = userDTO.FirstName;
+                user.LastName = userDTO.LastName;
                 IdentityResult result = await userManager.CreateAsync(user, userDTO.Password);
 
                 if (result.Succeeded)
@@ -42,14 +48,15 @@ namespace Recipe_Generator.Controllers
                 }
                 else
                 {
-                    return BadRequest(result.Errors.ToString());
+                    var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
+                    return BadRequest(message);
                 }
             }
             
             return BadRequest();
         }
 
-        [HttpPost("login")]
+        [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginUserDTO userDTO)
         {
             if (ModelState.IsValid)
@@ -97,8 +104,86 @@ namespace Recipe_Generator.Controllers
                     }
                 }
             }
-            return Unauthorized();
+            return Unauthorized("Invalid user name or password");
         }
 
+        [HttpPost("Update User/{id}")]
+        public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
+        {
+            User user = await userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                user.UserName = userData.UserName;
+                user.Email = userData.Email;
+                user.FirstName = userData.FirstName;
+                user.LastName = userData.LastName;
+                IdentityResult result = await userManager.UpdateAsync(user);
+                if(result.Succeeded)
+                {
+                    return Ok("User Updated Successfully");
+                }
+                else
+                {
+                    var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
+                    return BadRequest(message);
+                }
+            }
+            return BadRequest();
+        }
+
+        [HttpDelete("Delete User/{id}")]
+        public async Task<IActionResult> DeleteUser(string id) 
+        {
+            User user = await userManager.FindByIdAsync(id);
+            if (user != null)
+            {
+                    return Ok("User Deleted successfully");
+            }
+            else
+            {
+                //var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
+                return BadRequest("User not found");
+            }
+        }
+
+        [HttpGet("All Users")]
+        public IActionResult GetAllUsers() 
+        {
+            var users = new List<String>();
+            var usersList = userManager.Users.ToList();
+            if (usersList.Count > 0)
+            {
+
+                //foreach (var user in usersList)
+                //{
+
+                //    //User singleUser = new User();
+                    
+                //    users.Add(user.UserName);
+                //    users.Add(user.FirstName);
+                //    users.Add(user.LastName);
+                //    users.Add(user.Email);
+                    
+                //}
+                return Ok(usersList);
+            }
+
+            return BadRequest();
+            
+        }
+
+        [HttpGet("{id}")]
+        public async Task<IActionResult> GetUser(string id)
+        {
+            User user = await userManager.FindByIdAsync(id);
+            if(user != null)
+            {
+                return Ok(user);
+            }
+            else
+            {
+                return BadRequest("User not found");
+            }
+        }
     }
 }
