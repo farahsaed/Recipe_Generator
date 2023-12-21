@@ -110,25 +110,28 @@ namespace Recipe_Generator.Controllers
         [HttpPost("Update User/{id}")]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
-            User user = await userManager.FindByIdAsync(id);
-            if (user != null)
-            {
-                user.UserName = userData.UserName;
-                user.Email = userData.Email;
-                user.FirstName = userData.FirstName;
-                user.LastName = userData.LastName;
-                IdentityResult result = await userManager.UpdateAsync(user);
-                if(result.Succeeded)
+            
+                User user = await userManager.FindByIdAsync(id);
+                if (user != null)
                 {
-                    return Ok("User Updated Successfully");
-                }
-                else
-                {
-                    var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
-                    return BadRequest(message);
-                }
+                    user.UserName = userData.UserName;
+                    user.Email = userData.Email;
+                    user.FirstName = userData.FirstName;
+                    user.LastName = userData.LastName;
+                    IdentityResult result = await userManager.UpdateAsync(user);
+                    if (result.Succeeded)
+                    {
+                        return Ok("User Updated Successfully");
+                    }
+                    else
+                    {
+                        var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
+                        return BadRequest(message);
+                    }
+                
             }
-            return BadRequest();
+            
+            return BadRequest("User not found");
         }
 
         [HttpDelete("Delete User/{id}")]
@@ -137,38 +140,25 @@ namespace Recipe_Generator.Controllers
             User user = await userManager.FindByIdAsync(id);
             if (user != null)
             {
+                IdentityResult result = await userManager.DeleteAsync(user);
+                if (result.Succeeded)
+                {
                     return Ok("User Deleted successfully");
+                }
             }
-            else
-            {
-                //var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
                 return BadRequest("User not found");
-            }
         }
 
         [HttpGet("All Users")]
         public IActionResult GetAllUsers() 
         {
-            var users = new List<String>();
             var usersList = userManager.Users.ToList();
             if (usersList.Count > 0)
             {
-
-                //foreach (var user in usersList)
-                //{
-
-                //    //User singleUser = new User();
-                    
-                //    users.Add(user.UserName);
-                //    users.Add(user.FirstName);
-                //    users.Add(user.LastName);
-                //    users.Add(user.Email);
-                    
-                //}
                 return Ok(usersList);
             }
 
-            return BadRequest();
+            return BadRequest("No user found");
             
         }
 
