@@ -12,7 +12,7 @@ namespace Recipe_Generator.Data
         public DbSet<Category> Categories { get; set; }
 
         public DbSet<Recipe> Recipes { get; set; }
-        //public DbSet<Favourite> Favourites { get; set; }
+        public DbSet<Favourite> Favourites { get; set; }
         public DbSet<User> Users { get; set; }
 
         public DbSet<Admin> Admins { get; set; }

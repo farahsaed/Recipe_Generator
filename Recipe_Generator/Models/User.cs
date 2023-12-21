@@ -6,7 +6,7 @@ namespace Recipe_Generator.Models
     public class User : IdentityUser
     {
 
-        //public List<Favourite> Favourites { get; set; }
+        public List<Favourite> Favourites { get; set; }
 
 
     }
