@@ -4,6 +4,8 @@ namespace Recipe_Generator.DTO
 {
     public class UserDataDTO
     {
+        public string? ImagePath { get; set; }
+        public IFormFile Image { get; set; }
         public string Id { get; set; }
 
         [Required]
@@ -23,5 +25,6 @@ namespace Recipe_Generator.DTO
         public string ConfirmPassword { get; set; }
         [Required]
         public string Email { get; set; }
+        
     }
 }

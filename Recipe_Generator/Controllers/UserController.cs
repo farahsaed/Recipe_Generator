@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Recipe_Generator.DTO;
@@ -23,26 +24,52 @@ namespace Recipe_Generator.Controllers
     {
         private readonly UserManager<User> userManager;
         private readonly IConfiguration configuration;
+        private readonly IWebHostEnvironment _environment;
 
-        public UserController(UserManager<User> userManager,IConfiguration configuration)
+        public UserController(UserManager<User> userManager,IConfiguration configuration , IWebHostEnvironment environment)
         {
             this.userManager = userManager;
             this.configuration = configuration;
+            _environment = environment;
         }
 
         [HttpPost]
         [Route("Register")]
         [Route("Create User")]
-
-        public async Task<IActionResult> Register(UserDataDTO userDTO)
+        public async Task<IActionResult> Register([FromForm]UserDataDTO userDTO)
         {
-                User user = new User();
-                user.UserName =  userDTO.UserName;
-                user.Email = userDTO.Email;
-                user.FirstName = userDTO.FirstName;
-                user.LastName = userDTO.LastName;
-                userManager.AddToRoleAsync(user, "user");
-                IdentityResult result = await userManager.CreateAsync(user, userDTO.Password);
+            User user = new User();
+            user.UserName =  userDTO.UserName;
+            user.Email = userDTO.Email;
+            user.FirstName = userDTO.FirstName;
+            user.LastName = userDTO.LastName;
+            userManager.AddToRoleAsync(user, "user");
+                
+            string wwwRootPath = _environment.WebRootPath;
+            if(userDTO.Image != null)
+            {
+                string fileName = Guid.NewGuid().ToString();
+                var filePath = Path.Combine(wwwRootPath, @"images\ProfilePhotos");
+                var extension = Path.GetExtension(userDTO.Image.FileName);
+                if(userDTO.ImagePath != null)
+                {
+                    var oldImage = Path.Combine(wwwRootPath, userDTO.ImagePath.TrimStart('\\'));
+                    if (System.IO.File.Exists(oldImage))
+                    {
+                        System.IO.File.Delete(oldImage);
+                    }
+                }
+
+                using(var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
+                {
+                    userDTO.Image.CopyTo(fileStream);
+                }
+                userDTO.ImagePath = @"images\ProfilePhotos\" + fileName + extension;
+            }
+
+            user.ImagePath = userDTO.ImagePath;
+
+            IdentityResult result = await userManager.CreateAsync(user, userDTO.Password);
 
             if (result.Succeeded)
             {

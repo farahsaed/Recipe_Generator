@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using AutoMapper.Configuration.Annotations;
+using Microsoft.AspNetCore.Identity;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -11,7 +12,6 @@ namespace Recipe_Generator.Models
         [Required]
         public String LastName { get; set; }
         public List<Favourite> Favourites { get; set; }
-
-
+        public string? ImagePath { get; set; }
     }
 }
