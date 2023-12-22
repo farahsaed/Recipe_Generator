@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
@@ -15,6 +16,7 @@ using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegiste
 
 namespace Recipe_Generator.Controllers
 {
+    //[Authorize(Roles = ("User"))]
     [Route("api/[controller]")]
     [ApiController]
     public class UserController : ControllerBase
@@ -31,30 +33,30 @@ namespace Recipe_Generator.Controllers
         [HttpPost]
         [Route("Register")]
         [Route("Create User")]
+
         public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
-            if(ModelState.IsValid)
-            {
                 User user = new User();
                 user.UserName =  userDTO.UserName;
                 user.Email = userDTO.Email;
                 user.FirstName = userDTO.FirstName;
                 user.LastName = userDTO.LastName;
+                userManager.AddToRoleAsync(user, "user");
                 IdentityResult result = await userManager.CreateAsync(user, userDTO.Password);
 
-                if (result.Succeeded)
-                {
-                    return Ok("Account created successfully");
-                }
-                else
-                {
-                    var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
-                    return BadRequest(message);
-                }
+            if (result.Succeeded)
+            {
+                return Ok("Account created successfully");
+            }
+            else
+            {
+                var message = string.Join(", ", result.Errors.Select(x => "Code " + x.Code + " Description" + x.Description));
+                return BadRequest(message);
             }
             
-            return BadRequest();
+            //return BadRequest();
         }
+
 
         [HttpPost("Login")]
         public async Task<IActionResult> Login(LoginUserDTO userDTO)
@@ -108,6 +110,8 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpPost("Update User/{id}")]
+        [Authorize(Roles = ("Admin"))]
+
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
             
@@ -135,6 +139,8 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpDelete("Delete User/{id}")]
+        [Authorize(Roles = ("Admin"))]
+
         public async Task<IActionResult> DeleteUser(string id) 
         {
             User user = await userManager.FindByIdAsync(id);
@@ -150,6 +156,8 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpGet("All Users")]
+        [Authorize(Roles = ("Admin"))]
+
         public IActionResult GetAllUsers() 
         {
             var usersList = userManager.Users.ToList();
@@ -163,6 +171,8 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpGet("{id}")]
+        [Authorize(Roles = ("Admin"))]
+
         public async Task<IActionResult> GetUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -175,5 +185,8 @@ namespace Recipe_Generator.Controllers
                 return BadRequest("User not found");
             }
         }
+
+        
+
     }
 }
