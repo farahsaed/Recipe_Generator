@@ -8,15 +8,13 @@ namespace Recipe_Generator.Data
     {
         public RecipeContext  (){}
         public RecipeContext(DbContextOptions options):base(options){ }
-
         public DbSet<Category> Categories { get; set; }
-
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Favourite> Favourites { get; set; }
         public DbSet<User> Users { get; set; }
-
         public DbSet<Admin> Admins { get; set; }
-
+        public DbSet<Comment> Comments { get; set; }
+        public DbSet<ToDo> ToDos { get; set; }
 
 
     }
