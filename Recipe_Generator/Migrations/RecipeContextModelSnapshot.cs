@@ -176,7 +176,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Admins");
+                    b.ToTable("Admins", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
@@ -193,7 +193,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
@@ -216,7 +216,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Favourite", b =>
@@ -242,7 +242,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId1");
 
-                    b.ToTable("Favourites");
+                    b.ToTable("Favourites", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Recipe", b =>
@@ -290,7 +290,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("CategoryId");
 
-                    b.ToTable("Recipes");
+                    b.ToTable("Recipes", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.ToDo", b =>
@@ -320,7 +320,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("ToDos");
+                    b.ToTable("ToDos", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>

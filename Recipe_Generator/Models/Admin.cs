@@ -1,6 +1,8 @@
-﻿namespace Recipe_Generator.Models
+﻿using System.ComponentModel.DataAnnotations;
+
+namespace Recipe_Generator.Models
 {
-    public class Admin :Person
+    public class Admin : Person
     {
     }
 }

@@ -5,7 +5,7 @@ namespace Recipe_Generator.DTO
     public class LoginUserDTO
     {
         [Required]
-        [Display(Name = "User Nsame")]
+        [Display(Name = "User Name")]
         public String  UserName { get; set; }
         [Required]
         public String Password { get; set; }

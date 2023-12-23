@@ -4,9 +4,7 @@ namespace Recipe_Generator.DTO
 {
     public class UserDataDTO
     {
-        public string? ImagePath { get; set; }
-        public IFormFile Image { get; set; }
-        public string Id { get; set; }
+        public IFormFile? Image { get; set; }
 
         [Required]
         [Display(Name = "First Name")]

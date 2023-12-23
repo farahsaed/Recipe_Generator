@@ -1,4 +1,6 @@
-﻿namespace Recipe_Generator.Models
+﻿using Microsoft.AspNetCore.Identity;
+
+namespace Recipe_Generator.Models
 {
     public class Person
     {
