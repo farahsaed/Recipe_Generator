@@ -5,7 +5,9 @@
         public int Id { get; set; }
 
         public string RecipeName { get; set; }
-        public string Image {get; set;}
+        public string? ImageUrl {get; set;}
+        public IFormFile? Image { get; set; }
+
         public string  Description { get; set;}
         public string PrepareTime { get; set;}
         public string CategoryName { get; set;}

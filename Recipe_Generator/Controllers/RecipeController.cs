@@ -17,7 +17,7 @@ namespace Recipe_Generator.Controllers
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _environment;
 
-        public RecipeController(RecipeContext context, IMapper mapper , IWebHostEnvironment environment)
+        public RecipeController(RecipeContext context, IMapper mapper, IWebHostEnvironment environment)
         {
             _context = context;
             _mapper = mapper;
@@ -47,23 +47,23 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> CreateRecipe(RecipeWithCategoryNameDTO recipe, IFormFile? file)
+        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipe)
         {
-            var categoryMapping = _mapper.Map<Recipe>(recipe);
+            var recipeMapping = _mapper.Map<Recipe>(recipe);
 
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _environment.WebRootPath;
 
-                if (file != null)
+                if (recipe.Image != null)
                 {
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\recipes");
-                    var extension = Path.GetExtension(file.FileName);
+                    var extension = Path.GetExtension(recipe.Image.FileName);
 
-                    if (recipe.Image != null)
+                    if (recipe.ImageUrl != null)
                     {
-                        var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, recipe.ImageUrl.TrimStart('\\'));
                         if (System.IO.File.Exists(oldImagePath))
                         {
                             System.IO.File.Delete(oldImagePath);
@@ -76,20 +76,20 @@ namespace Recipe_Generator.Controllers
                             FileMode.Create)
                         )
                     {
-                        file.CopyTo(fileStream);
+                        recipe.Image.CopyTo(fileStream);
                     }
-                    recipe.Image = @"\images\recipes\" + fileName + extension;
+                    recipe.ImageUrl = @"images\recipes\" + fileName + extension;
                 }
 
-                if (recipe.Id == 0)
+                if (recipe != null)
                 {
-                    // Create Product
-                    _context.Recipes.Add(categoryMapping);
+                    // Create recipe
+                    _context.Recipes.Add(recipeMapping);
                     await _context.SaveChangesAsync();
                     string url = Url.Link("GetOneRecipe", new { id = recipe.Id });
                     return Created(url, recipe);
                 }
-               
+
             }
             return BadRequest(ModelState);
         }
@@ -97,23 +97,23 @@ namespace Recipe_Generator.Controllers
 
 
         [HttpPut("{id:int}")]
-        public async Task<IActionResult> UpdateRecipe(RecipeWithCategoryNameDTO recipe , int id,[FromForm] IFormFile? file)
+        public async Task<IActionResult> UpdateRecipe([FromForm] RecipeWithCategoryNameDTO recipe, int id)
         {
             var recipeMapping = _mapper.Map<Recipe>(recipe);
-            Recipe oldRecipe = await _context.Recipes.Include(c=> c.Category).FirstOrDefaultAsync(r => r.Id == id);
+            Recipe oldRecipe = await _context.Recipes.Include(c => c.Category).FirstOrDefaultAsync(r => r.Id == id);
 
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _environment.WebRootPath;
-                if (file != null)
+                if (recipe.Image != null)
                 {
                     string fileName = Guid.NewGuid().ToString();
                     var uploads = Path.Combine(wwwRootPath, @"images\recipes");
-                    var extension = Path.GetExtension(file.FileName);
+                    var extension = Path.GetExtension(recipe.Image.FileName);
 
-                    if (recipe.Image != null)
+                    if (recipe.ImageUrl != null)
                     {
-                        var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, recipe.ImageUrl.TrimStart('\\'));
                         if (System.IO.File.Exists(oldImagePath))
                         {
                             System.IO.File.Delete(oldImagePath);
@@ -126,14 +126,13 @@ namespace Recipe_Generator.Controllers
                             FileMode.Create)
                         )
                     {
-                        file.CopyTo(fileStream);
+                        recipe.Image.CopyTo(fileStream);
                     }
-                    recipe.Image = @"\images\recipes\" + fileName + extension;
+                    recipe.ImageUrl = @"images\recipes\" + fileName + extension;
                 }
 
                 if (recipe.Id != 0)
                 {
-                    // Create Product
                     _context.Entry(oldRecipe).CurrentValues.SetValues(recipeMapping);
                     await _context.SaveChangesAsync();
                     return Ok(recipeMapping);
@@ -156,7 +155,7 @@ namespace Recipe_Generator.Controllers
                 {
                     System.IO.File.Delete(oldImagePath);
                 }
-                // delete product row from db
+
                 _context.Recipes.Remove(recipeToDelete);
                 await _context.SaveChangesAsync();
                 return NoContent();
