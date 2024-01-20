@@ -95,7 +95,7 @@ namespace Recipe_Generator.Controllers
                     {
                         var claims = new List<Claim>();
                         claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
+                        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
                         claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
                         
                         var roles =await userManager.GetRolesAsync(user);
@@ -124,8 +124,10 @@ namespace Recipe_Generator.Controllers
                             {
                                 message= "Logged in successfully",
                                 token = new JwtSecurityTokenHandler().WriteToken(validToken),
-                                expires = validToken.ValidTo
-                            }
+                                expires = validToken.ValidTo,
+                                id = ClaimTypes.NameIdentifier.ToString(),
+                                userid = user.Id
+                        }
                         );
                     }
                 }

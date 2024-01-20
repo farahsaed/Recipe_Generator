@@ -91,12 +91,14 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> CreateToDo(UserWithToDoDTO toDoDTO)
         {
             ToDo toDo = new ToDo();
-            var claimsIdentity = (ClaimsIdentity)User.Identity;
-            var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+            //var claimsIdentity = (ClaimsIdentity)User.Identity;
+            //var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            var claims = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
 
             if (claims != null)
             {
-                toDo.User.Id = claims.Value;
+                toDo.User.Id = claims;
                 toDo.Id = Guid.NewGuid();
                 toDo.Descriprtion = toDoDTO.Descriprtion;
                 toDo.CreatedDate = DateTime.Now;
@@ -108,7 +110,7 @@ namespace Recipe_Generator.Controllers
                 {
                     await _db.ToDos.AddAsync(toDo);
                     await _db.SaveChangesAsync();
-                    return Ok("ToDo item created successfully");
+                    return Ok("ToDo item created successfully , user id = " + claims);
                 }
                 return BadRequest();
             }
