@@ -1,14 +1,12 @@
-﻿namespace Recipe_Generator.Models
+﻿namespace Recipe_Generator.DTO
 {
-    public class ToDo
+    public class UserWithToDoDTO
     {
-        public Guid Id { get; set; }
         public String Descriprtion { get; set; }
         public bool IsCompleted { get; set; } = false;
         public DateTime CreatedDate { get; set; }
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedDate { get; set; } = null;
         public DateTime? UpdatedTime { get; set; } = null;
-        public User User { get; set; }
     }
 }

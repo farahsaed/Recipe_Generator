@@ -3,6 +3,8 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Recipe_Generator.Data;
 using Recipe_Generator.Models;
+using Recipe_Generator.DTO;
+using System.Security.Claims;
 
 namespace Recipe_Generator.Controllers
 {
@@ -55,34 +57,79 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpPost("Create a ToDo item")] 
-        public async Task<IActionResult> CreateToDo(ToDo toDo)
+        //[HttpPost("Create a ToDo item")] 
+        //public async Task<IActionResult> CreateToDo(ToDo toDo)
+        //{
+        //    var claimsIdentity = (ClaimsIdentity)User.Identity;
+        //    var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+        //    if(claims != null)
+        //    {
+        //        toDo.User.Id = claims.Value;
+        //        toDo.Id = Guid.NewGuid();
+        //        toDo.CreatedDate = DateTime.Now;
+        //        toDo.IsDeleted = false;
+        //        toDo.IsCompleted = false;
+        //        toDo.DeletedDate = null;
+        //        toDo.UpdatedTime = null;
+        //        if (ModelState.IsValid)
+        //        {
+        //            await _db.ToDos.AddAsync(toDo);
+        //            await _db.SaveChangesAsync();
+        //            return Ok("ToDo item created successfully");
+        //        }
+        //        return BadRequest();
+        //    }
+        //    else 
+        //    {
+        //        return NotFound();
+        //    }
+
+        //}
+
+        [HttpPost("Create a ToDo item")]
+        public async Task<IActionResult> CreateToDo(UserWithToDoDTO toDoDTO)
         {
-            toDo.Id = Guid.NewGuid();
-            toDo.CreatedDate = DateTime.Now;
-            toDo.IsDeleted = false;
-            toDo.IsCompleted = false;
-            toDo.DeletedDate = null;
-            toDo.UpdatedTime = null;
-            if(ModelState.IsValid)
+            ToDo toDo = new ToDo();
+            var claimsIdentity = (ClaimsIdentity)User.Identity;
+            var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
+
+            if (claims != null)
             {
-                await _db.ToDos.AddAsync(toDo);
-                await _db.SaveChangesAsync();
-                return Ok("ToDo item created successfully");
+                toDo.User.Id = claims.Value;
+                toDo.Id = Guid.NewGuid();
+                toDo.Descriprtion = toDoDTO.Descriprtion;
+                toDo.CreatedDate = DateTime.Now;
+                toDo.IsDeleted = false;
+                toDo.IsCompleted = false;
+                toDo.DeletedDate = null;
+                toDo.UpdatedTime = null;
+                if (ModelState.IsValid)
+                {
+                    await _db.ToDos.AddAsync(toDo);
+                    await _db.SaveChangesAsync();
+                    return Ok("ToDo item created successfully");
+                }
+                return BadRequest();
             }
-            return BadRequest();
+            else
+            {
+                return NotFound();
+            }
+
         }
 
+
         [HttpPost("Update item/id:Guid")]
-        public async Task<IActionResult> UpdateToDo(ToDo toDo,Guid id)
+        public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO,Guid id)
         {
             var todo = await _db.ToDos.FindAsync(id);
             if (todo == null)
                 return NotFound();
 
-            todo.IsCompleted = toDo.IsCompleted;
+            todo.IsCompleted = toDoDTO.IsCompleted;
             todo.UpdatedTime = DateTime.Now;
-            todo.Descriprtion = toDo.Descriprtion;
+            todo.Descriprtion = toDoDTO.Descriprtion;
 
             await _db.SaveChangesAsync();
             return Ok(todo);
@@ -115,8 +162,5 @@ namespace Recipe_Generator.Controllers
             await _db.SaveChangesAsync();
             return Ok("Todo deleted successfully");
         }
-
-        
-
     }
 }
