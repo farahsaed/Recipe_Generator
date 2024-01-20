@@ -7,6 +7,6 @@ namespace Recipe_Generator.DTO
 
         public string CategoryName { get; set; }
 
-        public List<RecipeWithCategoryNameDTO> Recipes { get; set; } 
+       // public List<RecipeWithCategoryNameDTO> Recipes { get; set; } 
     }
 }

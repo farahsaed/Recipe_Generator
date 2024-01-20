@@ -6,6 +6,7 @@ using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
 using System.Collections.Generic;
+using System.Security.Claims;
 
 namespace Recipe_Generator.Controllers
 {
@@ -20,36 +21,55 @@ namespace Recipe_Generator.Controllers
             _context = context;
             _mapper = mapper;
         }
-        [HttpGet]
+
+
+        [HttpGet("All Favourites")]
         public async Task<IActionResult> GetAllFavourites()
         {
-            List<Favourite> favouriteList = await _context.Favourites.Include(r => r.Recipe).Include(u => u.User).ToListAsync();
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if(userIdClaim == null)
+            {
+                return BadRequest("Unable to retrieve user info");
+            }
+            var userId = userIdClaim.Value;
+            List<Favourite> favouriteList = await _context.Favourites
+                .Include(r => r.Recipe)
+                .Include(u => u.User)
+                .Where(r => r.User.Id.ToString() == userId)
+                .ToListAsync();
             return Ok(favouriteList);
         }
-        [HttpGet("{id:int}", Name = "GetOneFavourite")]
+
+
+        [HttpGet("GetFavouriteByID/{id:int}", Name = "GetOneFavourite")]
         public async Task<IActionResult> GetFavourite(int id)
         {
-            Favourite favourite = await _context.Favourites.Include(r => r.Recipe).Include(u => u.User).Where(f => f.Id == id).FirstOrDefaultAsync();
+            Favourite? favourite = await _context.Favourites
+                .Include(r => r.Recipe)
+                .Include(u => u.User)
+                .Where(f => f.Id == id)
+                .FirstOrDefaultAsync();
             if (favourite != null)
             {
                 return Ok(favourite);
-
-                //    CategoryDTO.CategoryName = category.CategoryName;
-
-                //    foreach (var recipe in category.Recipes)
-                //    {
-
-                //        CategoryDTO.Recipes.Add(recipe.Name);
-                //    }
             }
             else
             {
                 return StatusCode(404);
             }
         }
-        [HttpPost]
+
+
+        [HttpPost("Create favourite")]
         public async Task<IActionResult> CreateFavourite(FavoriteWithRecipeInfoDTO favoriteDTO)
         {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return BadRequest("Unable to retrieve user info");
+            }
+            favoriteDTO.UserId = userIdClaim.Value;
+
             var favouriteMapping = _mapper.Map<Favourite>(favoriteDTO);
             if (ModelState.IsValid == true)
             {
@@ -60,11 +80,21 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
-        [HttpPut("{id:int}")]
+
+
+        [HttpPut("Update favourite/{id:int}")]
         public async Task<IActionResult> UpdateFavourite(FavoriteWithRecipeInfoDTO favouriteDTO, int id)
         {
+            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
+            if (userIdClaim == null)
+            {
+                return BadRequest("Unable to retrieve user info");
+            }
+            favouriteDTO.UserId = userIdClaim.Value;
             var favouriteMapping = _mapper.Map<Favourite>(favouriteDTO);
-            Favourite oldFavourite = await _context.Favourites.Include(r => r.Recipe).FirstOrDefaultAsync(f => f.Id == id);
+            Favourite? oldFavourite = await _context.Favourites
+                .Include(r => r.Recipe)
+                .FirstOrDefaultAsync(f => f.Id == id);
             if (oldFavourite != null)
             {
                 if (ModelState.IsValid == true)
@@ -77,10 +107,13 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
-        [HttpDelete("{id}")]
+
+        [HttpDelete("Delete favourite/{id}")]
         public async Task<IActionResult> DeleteFavourite(int id)
         {
-            Favourite favouriteToDelete = await _context.Favourites.Include(r => r.Recipe).FirstOrDefaultAsync(c => c.Id == id);
+            Favourite? favouriteToDelete = await _context.Favourites
+                .Include(r => r.Recipe)
+                .FirstOrDefaultAsync(c => c.Id == id);
             if (favouriteToDelete != null)
             {
                 _context.Favourites.Remove(favouriteToDelete);
@@ -90,7 +123,6 @@ namespace Recipe_Generator.Controllers
             }
             return NotFound();
         }
-
 
     }
 }
