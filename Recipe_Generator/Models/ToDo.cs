@@ -1,4 +1,6 @@
-﻿namespace Recipe_Generator.Models
+﻿using System.ComponentModel.DataAnnotations.Schema;
+
+namespace Recipe_Generator.Models
 {
     public class ToDo
     {
@@ -9,6 +11,8 @@
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedDate { get; set; } = null;
         public DateTime? UpdatedTime { get; set; } = null;
+        [ForeignKey("UserId")]
         public User User { get; set; }
+        public string UserId { get; set; }
     }
 }

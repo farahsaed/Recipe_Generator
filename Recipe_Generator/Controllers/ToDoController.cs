@@ -5,6 +5,7 @@ using Recipe_Generator.Data;
 using Recipe_Generator.Models;
 using Recipe_Generator.DTO;
 using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 
 namespace Recipe_Generator.Controllers
 {
@@ -13,21 +14,26 @@ namespace Recipe_Generator.Controllers
     public class ToDoController : ControllerBase
     {
         private readonly RecipeContext _db;
+        private readonly UserManager<User> userManager;
 
-        public ToDoController(RecipeContext db)
+        public ToDoController(RecipeContext db, UserManager<User> userManager)
         {
+            this.userManager = userManager;
             this._db = db;
         }
 
         [HttpGet("All ToDo items")]
         public async Task<IActionResult> GetAll()
         {
+            var userId = userManager.GetUserId(HttpContext.User);
+
             var todo = await _db.ToDos
                 .Where(x => x.IsDeleted == false)
-                .OrderByDescending(x=>x.CreatedDate)
+                .Where(u => u.UserId == userId)
+                .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
 
-            if(todo.Count == 0)
+            if (todo.Count == 0)
                 return NotFound();
 
             return Ok(todo);
@@ -46,8 +52,11 @@ namespace Recipe_Generator.Controllers
         [HttpGet("Deleted items")]
         public async Task<IActionResult> GetDeletedItems()
         {
+            var userId = userManager.GetUserId(HttpContext.User);
+
             var todo = await _db.ToDos
                 .Where(x => x.IsDeleted == true)
+                .Where(u => u.UserId == userId)
                 .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
 
@@ -57,48 +66,16 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        //[HttpPost("Create a ToDo item")] 
-        //public async Task<IActionResult> CreateToDo(ToDo toDo)
-        //{
-        //    var claimsIdentity = (ClaimsIdentity)User.Identity;
-        //    var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
-
-        //    if(claims != null)
-        //    {
-        //        toDo.User.Id = claims.Value;
-        //        toDo.Id = Guid.NewGuid();
-        //        toDo.CreatedDate = DateTime.Now;
-        //        toDo.IsDeleted = false;
-        //        toDo.IsCompleted = false;
-        //        toDo.DeletedDate = null;
-        //        toDo.UpdatedTime = null;
-        //        if (ModelState.IsValid)
-        //        {
-        //            await _db.ToDos.AddAsync(toDo);
-        //            await _db.SaveChangesAsync();
-        //            return Ok("ToDo item created successfully");
-        //        }
-        //        return BadRequest();
-        //    }
-        //    else 
-        //    {
-        //        return NotFound();
-        //    }
-
-        //}
-
         [HttpPost("Create a ToDo item")]
         public async Task<IActionResult> CreateToDo(UserWithToDoDTO toDoDTO)
         {
             ToDo toDo = new ToDo();
-            //var claimsIdentity = (ClaimsIdentity)User.Identity;
-            //var claims = claimsIdentity.FindFirst(ClaimTypes.NameIdentifier);
 
-            var claims = HttpContext.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            var userId = userManager.GetUserId(HttpContext.User);
 
-            if (claims != null)
+            if (userId != null)
             {
-                toDo.User.Id = claims;
+                toDo.UserId = userId;
                 toDo.Id = Guid.NewGuid();
                 toDo.Descriprtion = toDoDTO.Descriprtion;
                 toDo.CreatedDate = DateTime.Now;
@@ -110,7 +87,7 @@ namespace Recipe_Generator.Controllers
                 {
                     await _db.ToDos.AddAsync(toDo);
                     await _db.SaveChangesAsync();
-                    return Ok("ToDo item created successfully , user id = " + claims);
+                    return Ok("ToDo item created successfully");
                 }
                 return BadRequest();
             }
@@ -123,28 +100,39 @@ namespace Recipe_Generator.Controllers
 
 
         [HttpPost("Update item/id:Guid")]
-        public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO,Guid id)
+        public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO, Guid id)
         {
-            var todo = await _db.ToDos.FindAsync(id);
-            if (todo == null)
-                return NotFound();
+            var userId = userManager.GetUserId(HttpContext.User);
 
-            todo.IsCompleted = toDoDTO.IsCompleted;
-            todo.UpdatedTime = DateTime.Now;
-            todo.Descriprtion = toDoDTO.Descriprtion;
+            if (userId != null)
+            {
+                var todo = await _db.ToDos.FindAsync(id);
+                if (todo == null)
+                    return NotFound();
 
-            await _db.SaveChangesAsync();
-            return Ok(todo);
+                todo.UserId = userId;
+                todo.IsCompleted = toDoDTO.IsCompleted;
+                todo.UpdatedTime = DateTime.Now;
+                todo.Descriprtion = toDoDTO.Descriprtion;
+
+                await _db.SaveChangesAsync();
+                return Ok(todo);
+            }
+            else { return NotFound(); }
+            
 
         }
 
         [HttpPost("Undo Deleted item/id:Guid")]
         public async Task<IActionResult> UndoDelete(Guid id)
         {
+            var userId = userManager.GetUserId(HttpContext.User);
+
             var todo = await _db.ToDos.FindAsync(id);
             if (todo == null)
                 return NotFound();
 
+            todo.UserId = userId;
             todo.IsDeleted = false;
             todo.DeletedDate = null;
             todo.CreatedDate = DateTime.Now;
@@ -155,10 +143,13 @@ namespace Recipe_Generator.Controllers
         [HttpDelete("Delete item/id:Guid")]
         public async Task<IActionResult> DeleteToDo(Guid id)
         {
+            var userId = userManager.GetUserId(HttpContext.User);
+
             var todo = await _db.ToDos.FindAsync(id);
-            if(todo == null)
+            if (todo == null)
                 return NotFound();
 
+            todo.UserId = userId;
             todo.DeletedDate = DateTime.Now;
             todo.IsDeleted = true;
             await _db.SaveChangesAsync();
