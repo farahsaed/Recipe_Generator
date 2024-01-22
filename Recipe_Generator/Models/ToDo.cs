@@ -11,8 +11,9 @@ namespace Recipe_Generator.Models
         public bool IsDeleted { get; set; } = false;
         public DateTime? DeletedDate { get; set; } = null;
         public DateTime? UpdatedTime { get; set; } = null;
-        [ForeignKey("UserId")]
+        public string ImagePath { get; set; }
         public User User { get; set; }
+        [ForeignKey("User")]
         public string UserId { get; set; }
     }
 }

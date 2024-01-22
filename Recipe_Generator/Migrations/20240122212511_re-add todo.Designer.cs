@@ -12,8 +12,8 @@ using Recipe_Generator.Data;
 namespace Recipe_Generator.Migrations
 {
     [DbContext(typeof(RecipeContext))]
-    [Migration("20240121212551_user id to todo table")]
-    partial class useridtotodotable
+    [Migration("20240122212511_re-add todo")]
+    partial class readdtodo
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -311,6 +311,10 @@ namespace Recipe_Generator.Migrations
                         .HasColumnType("datetime2");
 
                     b.Property<string>("Descriprtion")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImagePath")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
