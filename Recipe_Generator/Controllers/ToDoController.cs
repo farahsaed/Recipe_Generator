@@ -15,9 +15,11 @@ namespace Recipe_Generator.Controllers
     {
         private readonly RecipeContext _db;
         private readonly UserManager<User> userManager;
+        private IWebHostEnvironment _environment;
 
-        public ToDoController(RecipeContext db, UserManager<User> userManager)
+        public ToDoController(RecipeContext db, UserManager<User> userManager,IWebHostEnvironment environment)
         {
+            this._environment = environment;
             this.userManager = userManager;
             this._db = db;
         }
@@ -98,7 +100,6 @@ namespace Recipe_Generator.Controllers
 
         }
 
-
         [HttpPost("Update item/id:Guid")]
         public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO, Guid id)
         {
@@ -154,6 +155,46 @@ namespace Recipe_Generator.Controllers
             todo.IsDeleted = true;
             await _db.SaveChangesAsync();
             return Ok("Todo deleted successfully");
+        }
+
+        [HttpPost("Add Image/{id}")]
+        public async Task<IActionResult> AddImage(Guid id, IFormFile image)
+        {
+            var userId = userManager.GetUserId(HttpContext.User);
+            if (userId != null)
+            {
+                var todo = await _db.ToDos.FindAsync(id);
+                if (todo == null)
+                    return NotFound("Todo item not found");
+
+                string wwwRootPath = _environment.WebRootPath;
+                if (image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString();
+                    var filePath = Path.Combine(wwwRootPath, @"images\TodoImages");
+                    var extension = Path.GetExtension(image.FileName);
+                    if (todo.ImagePath != null)
+                    {
+                        var oldImage = Path.Combine(wwwRootPath, todo.ImagePath.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImage))
+                        {
+                            System.IO.File.Delete(oldImage);
+                        }
+                    }
+
+                    using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
+                    {
+                        image.CopyTo(fileStream);
+                    }
+
+                    todo.ImagePath = @"images\TodoImages\" + fileName + extension;
+                    await _db.SaveChangesAsync();
+
+                    return Ok("Iamge uploaded successfuly");
+                }
+            }
+            
+            return NotFound("Unauthorized user");
         }
     }
 }
