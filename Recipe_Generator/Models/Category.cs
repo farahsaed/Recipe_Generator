@@ -8,7 +8,7 @@ namespace Recipe_Generator.Models
         public int Id { get; set; }
         [Required]
         public string CategoryName { get; set; }
-
+        public string ImageUrl { get; set; }
         public List<Recipe> Recipes { get; set; }
 
     }

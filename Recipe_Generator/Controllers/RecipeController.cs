@@ -6,7 +6,8 @@ using Recipe_Generator.Models;
 using Recipe_Generator.DTO;
 using AutoMapper;
 using System.IO;
-using System.Security.Claims; 
+using System.Security.Claims;
+using Microsoft.AspNetCore.Identity;
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
@@ -17,14 +18,15 @@ namespace Recipe_Generator.Controllers
         private readonly RecipeContext _context;
         private readonly IMapper _mapper;
         private readonly IWebHostEnvironment _environment;
-
-        public RecipeController(RecipeContext context, IMapper mapper, IWebHostEnvironment environment)
+        private readonly UserManager<User> userManager;
+        public RecipeController(RecipeContext context, IMapper mapper, IWebHostEnvironment environment, UserManager<User> userManager)
         {
             _context = context;
             _mapper = mapper;
             _environment = environment;
+            this.userManager = userManager;
         }
-       
+
         [HttpGet("All recipes")]
         public async Task<IActionResult> GetPagedRecipes(int pageNumber, int pageSize)
         {
@@ -75,7 +77,7 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        
+
         [HttpGet("GetRecipeByID/{id:int}", Name = "GetOneRecipe")]
 
         public async Task<IActionResult> GetRecipe(int id)
@@ -97,69 +99,80 @@ namespace Recipe_Generator.Controllers
         [HttpGet("User recipes")]
         public async Task<IActionResult> GetMyRecipes()
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return BadRequest("Unable to get user info");
-            }
-            var userId = userIdClaim.Value;
+            var userId = userManager.GetUserId(HttpContext.User);
+
             List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
             return Ok(userRecipes);
         }
+
         [HttpPost("Create recipes")]
-        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipe)
+        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
         {
-            Recipe recipe2 = new Recipe();
+            var userId = userManager.GetUserId(HttpContext.User);
+            User user = await _context.Users.FindAsync(userId);
+            Recipe recipe = new Recipe();
 
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
+            if (userId != null)
             {
-                return BadRequest("Unable to retrieve user info");
-            }
-            recipe.UserId = userIdClaim.Value;
-            var recipeMapping = _mapper.Map<Recipe>(recipe);
+                recipe.User = user;
+                recipe.User.Id = userId;
+                recipe.CategoryId = recipeDTO.CategoryId;
+                recipe.CookTime = recipeDTO.CookTime;
+                recipe.Description = recipeDTO.Description;
+                recipe.Directions = recipeDTO.Directions;
+                recipe.Ingredients = recipeDTO.Ingredients;
+                recipe.Name = recipeDTO.Name;
+                recipe.Nutrition = recipeDTO.Nutrition;
+                recipe.PrepareTime = recipeDTO.PrepareTime;
+                recipe.Timing = recipeDTO.Timing;
+                recipe.TotalTime = recipeDTO.TotalTime;
 
-            if (ModelState.IsValid)
-            {
-                string wwwRootPath = _environment.WebRootPath;
-
-                if (recipe.Image != null)
+                if (ModelState.IsValid)
                 {
-                    string fileName = Guid.NewGuid().ToString();
-                    var uploads = Path.Combine(wwwRootPath, @"images\recipes");
-                    var extension = Path.GetExtension(recipe.Image.FileName);
+                    string wwwRootPath = _environment.WebRootPath;
 
-                    if (recipeMapping.Image != null)
+                    if (recipeDTO.Image != null)
                     {
-                        var oldImagePath = Path.Combine(wwwRootPath, recipeMapping.Image.TrimStart('\\'));
-                        if (System.IO.File.Exists(oldImagePath))
+                        string fileName = Guid.NewGuid().ToString();
+                        var uploads = Path.Combine(wwwRootPath, @"images\recipes");
+                        var extension = Path.GetExtension(recipeDTO.Image.FileName);
+
+                        if (recipe.Image != null)
                         {
-                            System.IO.File.Delete(oldImagePath);
+                            var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
                         }
+
+                        using (
+                            var fileStream = new FileStream(
+                                Path.Combine(uploads, fileName + extension),
+                                FileMode.Create)
+                            )
+                        {
+                            recipeDTO.Image.CopyTo(fileStream);
+                        }
+                        recipe.Image = @"images\recipes\" + fileName + extension;
                     }
 
-                    using (
-                        var fileStream = new FileStream(
-                            Path.Combine(uploads, fileName + extension),
-                            FileMode.Create)
-                        )
-                    {
-                        recipe.Image.CopyTo(fileStream);
-                    }
-                    recipeMapping.Image = @"images\recipes\" + fileName + extension;
                 }
-
-                if (recipe != null)
+                if (recipeDTO != null)
                 {
                     // Create recipe
-                    _context.Recipes.Add(recipeMapping);
+                    _context.Recipes.Add(recipe);
                     await _context.SaveChangesAsync();
                     string url = Url.Link("GetOneRecipe", new { id = recipe.Id });
                     return Created(url, recipe);
                 }
-
+                return BadRequest(ModelState);
             }
-            return BadRequest(ModelState);
+            else
+            {
+                return NotFound("user id is not found");
+            }
+
         }
 
 
@@ -167,8 +180,10 @@ namespace Recipe_Generator.Controllers
         [HttpPut("Update Recipe/{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromForm] RecipeWithCategoryNameDTO recipe)
         {
+            var userId = userManager.GetUserId(HttpContext.User);
             var recipeMapping = _mapper.Map<Recipe>(recipe);
-            Recipe oldRecipe = await _context.Recipes.FindAsync(id);
+
+            Recipe oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
 
             if (ModelState.IsValid)
             {

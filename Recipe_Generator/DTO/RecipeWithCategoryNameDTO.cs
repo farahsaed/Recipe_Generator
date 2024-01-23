@@ -17,7 +17,7 @@ namespace Recipe_Generator.DTO
         public int CategoryId { get; set; }
         public string Nutrition { get; set; }
         public string Timing { get; set; }
-       public string? UserId { get; set; }
+       //public string? UserId { get; set; }
 
     }
 }
