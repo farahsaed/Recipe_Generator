@@ -1,4 +1,5 @@
 ﻿using Azure;
+using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Http.HttpResults;
@@ -70,7 +71,15 @@ namespace Recipe_Generator.Controllers
 
             await userManager.CreateAsync(user, userDTO.Password);
 
-            IdentityResult result = await userManager.AddToRoleAsync(user, "user");
+            IdentityResult result ;
+            if (user.Email.Contains("admin") && user.UserName.Contains("admin"))
+            {
+                result = await userManager.AddToRoleAsync(user, "admin");
+            }
+            else
+            {
+                result = await userManager.AddToRoleAsync(user, "user");
+            }
             if (result.Succeeded)
             {
                 return Ok("Account created successfully");
@@ -133,6 +142,13 @@ namespace Recipe_Generator.Controllers
                 }
             }
             return Unauthorized("Invalid user name or password");
+        }
+
+        [HttpPost("Logout")]
+        public async Task<IActionResult> Logout()
+        {
+            await HttpContext.SignOutAsync();
+            return Ok();
         }
 
     }

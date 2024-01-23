@@ -158,7 +158,7 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpPost("Add Image/{id}")]
-        public async Task<IActionResult> AddImage(Guid id, IFormFile image)
+        public async Task<IActionResult> AddImage(Guid id, IFormFile Image)
         {
             var userId = userManager.GetUserId(HttpContext.User);
             if (userId != null)
@@ -168,11 +168,11 @@ namespace Recipe_Generator.Controllers
                     return NotFound("Todo item not found");
 
                 string wwwRootPath = _environment.WebRootPath;
-                if (image != null)
+                if (Image != null)
                 {
                     string fileName = Guid.NewGuid().ToString();
                     var filePath = Path.Combine(wwwRootPath, @"images\TodoImages");
-                    var extension = Path.GetExtension(image.FileName);
+                    var extension = Path.GetExtension(Image.FileName);
                     if (todo.ImagePath != null)
                     {
                         var oldImage = Path.Combine(wwwRootPath, todo.ImagePath.TrimStart('\\'));
@@ -184,7 +184,7 @@ namespace Recipe_Generator.Controllers
 
                     using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
                     {
-                        image.CopyTo(fileStream);
+                        Image.CopyTo(fileStream);
                     }
 
                     todo.ImagePath = @"images\TodoImages\" + fileName + extension;

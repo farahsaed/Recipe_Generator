@@ -12,6 +12,7 @@ using System.Text;
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = ("admin"))]
     [ApiController]
     public class AdminController : ControllerBase
     {
@@ -31,7 +32,6 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpPost]
-        [Route("Register")]
         [Route("Create User")]
         public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
@@ -65,7 +65,7 @@ namespace Recipe_Generator.Controllers
 
             await userManager.CreateAsync(user, userDTO.Password);
 
-            IdentityResult result = await userManager.AddToRoleAsync(user, "admin");
+            IdentityResult result = await userManager.AddToRoleAsync(user, "user");
             if (result.Succeeded)
             {
                 return Ok("Account created successfully");
@@ -77,59 +77,7 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginUserDTO userDTO)
-        {
-            if (ModelState.IsValid)
-            {
-                User user = await userManager.FindByNameAsync(userDTO.UserName);
-                if (user != null)
-                {
-                    bool foundPassword = await userManager.CheckPasswordAsync(user, userDTO.Password);
-                    if (foundPassword)
-                    {
-                        var claims = new List<Claim>();
-                        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-
-                        var roles = await userManager.GetRolesAsync(user);
-                        foreach (var role in roles)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, role));
-
-                        }
-
-                        var securityKey = new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
-                            );
-                        SigningCredentials signingCredentials = new SigningCredentials(
-                                securityKey, SecurityAlgorithms.HmacSha256
-                            );
-
-                        JwtSecurityToken validToken = new JwtSecurityToken(
-                            issuer: configuration["JWT:IssuerValid"],
-                            audience: configuration["JWT:AudianceValid"],
-                            claims: claims,
-                            expires: DateTime.Now.AddHours(2),
-                            signingCredentials: signingCredentials
-                            );
-
-                        return Ok(new
-                        {
-                            message = "Logged in successfully",
-                            token = new JwtSecurityTokenHandler().WriteToken(validToken),
-                            expires = validToken.ValidTo
-                        }
-                        );
-                    }
-                }
-            }
-            return Unauthorized("Invalid user name or password");
-        }
-
-        [HttpPost("Update User/{id}")]
-        [Authorize(Roles = ("Admin"))]
+        [Authorize(Roles = ("admin"))]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -156,7 +104,6 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpDelete("Delete User/{id}")]
-        [Authorize(Roles = ("Admin"))]
         public async Task<IActionResult> DeleteUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -172,7 +119,6 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpGet("All Users")]
-        [Authorize(Roles = ("Admin"))]
         public IActionResult GetAllUsers()
         {
             var usersList = userManager.Users.ToList();
@@ -185,8 +131,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpGet("{id}")]
-        [Authorize(Roles = ("Admin"))]
+        [HttpGet("Get User/{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
