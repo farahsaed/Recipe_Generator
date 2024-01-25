@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipe_Generator.Data;
 
@@ -11,9 +12,11 @@ using Recipe_Generator.Data;
 namespace Recipe_Generator.Migrations
 {
     [DbContext(typeof(RecipeContext))]
-    partial class RecipeContextModelSnapshot : ModelSnapshot
+    [Migration("20240123235607_category image")]
+    partial class categoryimage
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -155,6 +158,30 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+            modelBuilder.Entity("Recipe_Generator.Models.Admin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Password")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Admins");
+                });
+
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -173,24 +200,20 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories", (string)null);
+                    b.ToTable("Categories");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
                 {
-                    b.Property<Guid>("Id")
+                    b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
+                        .HasColumnType("int");
 
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<bool>("IsEdited")
-                        .HasColumnType("bit");
 
                     b.Property<string>("UserId")
                         .IsRequired()
@@ -200,7 +223,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments", (string)null);
+                    b.ToTable("Comments");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Favourite", b =>
@@ -223,7 +246,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favourites", (string)null);
+                    b.ToTable("Favourites");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Recipe", b =>
@@ -276,39 +299,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Recipes", (string)null);
-                });
-
-            modelBuilder.Entity("Recipe_Generator.Models.Reply", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<Guid>("CommentId")
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("CreatedOn")
-                        .HasColumnType("datetime2");
-
-                    b.Property<bool>("IsEdited")
-                        .HasColumnType("bit");
-
-                    b.Property<string>("Text")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UserId")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(450)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("CommentId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("Replies", (string)null);
+                    b.ToTable("Recipes");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.ToDo", b =>
@@ -347,7 +338,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("ToDos", (string)null);
+                    b.ToTable("ToDos");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>
@@ -522,25 +513,6 @@ namespace Recipe_Generator.Migrations
                     b.Navigation("User");
                 });
 
-            modelBuilder.Entity("Recipe_Generator.Models.Reply", b =>
-                {
-                    b.HasOne("Recipe_Generator.Models.Comment", "Comment")
-                        .WithMany("Reply")
-                        .HasForeignKey("CommentId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Recipe_Generator.Models.User", "User")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Comment");
-
-                    b.Navigation("User");
-                });
-
             modelBuilder.Entity("Recipe_Generator.Models.ToDo", b =>
                 {
                     b.HasOne("Recipe_Generator.Models.User", "User")
@@ -555,11 +527,6 @@ namespace Recipe_Generator.Migrations
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Navigation("Recipes");
-                });
-
-            modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
-                {
-                    b.Navigation("Reply");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>

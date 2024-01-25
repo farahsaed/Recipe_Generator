@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwRoot\images\category\" />
     <Folder Include="wwwRoot\images\TodoImages\" />
     <Folder Include="wwwRoot\images\recipes\" />
     <Folder Include="wwwRoot\images\ProfilePhotos\" />
