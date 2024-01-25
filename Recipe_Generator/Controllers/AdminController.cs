@@ -78,6 +78,7 @@ namespace Recipe_Generator.Controllers
         }
 
         [Authorize(Roles = ("admin"))]
+        [HttpPost("Update user/{id}")]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
             User user = await userManager.FindByIdAsync(id);
