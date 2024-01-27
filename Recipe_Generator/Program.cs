@@ -65,9 +65,13 @@ internal class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        builder.Services.AddCors(policy => policy.AddPolicy("corspolicy" , build => 
+                build.WithOrigins("*").AllowAnyMethod().AllowAnyHeader()
+        ));
         app.UseStaticFiles();
 
-        app.UseAuthentication();
+        app.UseAuthentication(); 
+        app.UseCors("corspolicy");
 
         app.UseAuthorization();
 
