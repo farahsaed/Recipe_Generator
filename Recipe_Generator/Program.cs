@@ -16,7 +16,16 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
-
+        var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(name: MyAllowSpecificOrigins,
+                policy =>
+                {
+                    policy.WithOrigins("*").AllowAnyHeader().AllowAnyMethod();
+                }
+                );
+        });
         builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
@@ -65,9 +74,10 @@ internal class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        
         app.UseStaticFiles();
 
-        app.UseAuthentication();
+        app.UseAuthentication(); 
 
         app.UseAuthorization();
 
@@ -85,6 +95,7 @@ internal class Program
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
+        app.UseCors(MyAllowSpecificOrigins);
 
         app.Run();
     }
