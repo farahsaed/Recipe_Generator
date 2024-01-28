@@ -56,7 +56,7 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> GetCategory(int id)
         {
             CategoryWithRecipeListDTO CategoryDTO = new CategoryWithRecipeListDTO();
-            if (id != null || id != 0)
+            if (id != 0)
             {
                 Category? category = await _context.Categories
                     .Include(r => r.Recipes)
@@ -69,7 +69,7 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpPost("Create category")]
-        public async Task<IActionResult> CreateCategory(CategoryWithRecipeListDTO category)
+        public async Task<IActionResult> CreateCategory([FromForm] CategoryWithRecipeListDTO category)
         {
             var categoryMapping = _mapper.Map<Category>(category);
             if (ModelState.IsValid)
@@ -103,7 +103,7 @@ namespace Recipe_Generator.Controllers
                 }
                 _context.Categories.Add(categoryMapping);
                 await _context.SaveChangesAsync();
-                string url = Url.Link("GetOneCategory", new { id = category.Id });
+                string? url = Url.Link("GetOneCategory", new { id = categoryMapping.Id });
                 return Created(url, category);
 
             }
@@ -112,7 +112,7 @@ namespace Recipe_Generator.Controllers
 
 
         [HttpPut("Update category/{id}")]
-        public async Task<IActionResult> UpdateCategory(CategoryWithRecipeListDTO category, int id)
+        public async Task<IActionResult> UpdateCategory([FromForm] CategoryWithRecipeListDTO category, int id)
         {
             var categoryMapping = _mapper.Map<Category>(category);
             Category? oldCategory = await _context.Categories
@@ -147,21 +147,13 @@ namespace Recipe_Generator.Controllers
                     }
                     categoryMapping.ImageUrl = @"images\category\" + fileName + extension;
                 }
-                _context.Categories.Add(categoryMapping);
-                await _context.SaveChangesAsync();
-                string url = Url.Link("GetOneCategory", new { id = category.Id });
-                return Created(url, category);
-
-            }
-            if (oldCategory != null)
-            {
-                if (ModelState.IsValid == true)
+                if (oldCategory != null)
                 {
-
                     _context.Entry(oldCategory).CurrentValues.SetValues(categoryMapping);
                     await _context.SaveChangesAsync();
                     return Ok(categoryMapping);
                 }
+                return NotFound("Not Found");
             }
             return BadRequest(ModelState);
         }
