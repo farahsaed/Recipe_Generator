@@ -1,18 +1,18 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
-
+using static System.Reflection.Metadata.BlobBuilder;
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
-    [Authorize(Roles = ("admin"))]
+    [Authorize(Roles = "Admin")]
     [ApiController]
     public class AdminController : ControllerBase
     {
@@ -31,8 +31,7 @@ namespace Recipe_Generator.Controllers
             _environment = environment;
         }
 
-        [HttpPost]
-        [Route("Create User")]
+        [HttpPost("Create User")]
         public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
             User user = new User();
@@ -77,7 +76,6 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        [Authorize(Roles = ("admin"))]
         [HttpPost("Update user/{id}")]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
@@ -119,17 +117,54 @@ namespace Recipe_Generator.Controllers
             return NotFound("User not found");
         }
 
-        [HttpGet("All Users")]
-        public IActionResult GetAllUsers()
+        [HttpGet("All users")]
+        public async Task<IActionResult> GetAllUsers(int page, int limit)
         {
-            var usersList = userManager.Users.ToList();
-            if (usersList.Count > 0)
+            var users = userManager.Users;
+
+            var totalCount = await userManager.Users.CountAsync(); 
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)limit);
+
+            var pagedUsers = await users.Skip((page - 1) * limit).Take(limit).ToListAsync();
+
+            var pagedUser = new 
             {
-                return Ok(usersList);
+                Users = pagedUsers,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+
+            if (pagedUser.TotalCount>0)
+            {
+                return Ok(pagedUser);
             }
 
             return NotFound("No user found");
 
+        }
+
+        [HttpGet("Search user")]
+        public IActionResult GetSearchedUser(string? searchTerm)
+        {
+            IQueryable<User> users;
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                users = userManager.Users;
+
+            else
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                users = userManager.Users
+                    .Where(u => u.UserName.ToLower().Contains(searchTerm)
+                        || u.Email.ToLower().Contains(searchTerm)
+                    );
+            }
+
+            if (users.Any())
+            {
+                return Ok(users.ToList());
+            }
+            return NotFound("No user matches " + searchTerm);
         }
 
         [HttpGet("Get User/{id}")]

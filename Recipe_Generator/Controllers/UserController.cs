@@ -133,9 +133,7 @@ namespace Recipe_Generator.Controllers
                             {
                                 message= "Logged in successfully",
                                 token = new JwtSecurityTokenHandler().WriteToken(validToken),
-                                expires = validToken.ValidTo,
-                                id = ClaimTypes.NameIdentifier.ToString(),
-                                userid = user.Id
+                                expires = validToken.ValidTo
                         }
                         );
                     }

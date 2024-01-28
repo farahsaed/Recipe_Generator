@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Recipe_Generator.Data;
 
@@ -11,9 +12,11 @@ using Recipe_Generator.Data;
 namespace Recipe_Generator.Migrations
 {
     [DbContext(typeof(RecipeContext))]
-    partial class RecipeContextModelSnapshot : ModelSnapshot
+    [Migration("20240128185647_recpies andcomments")]
+    partial class recpiesandcomments
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -299,9 +302,6 @@ namespace Recipe_Generator.Migrations
                     b.Property<bool>("IsEdited")
                         .HasColumnType("bit");
 
-                    b.Property<int>("RecipeId")
-                        .HasColumnType("int");
-
                     b.Property<string>("Text")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
@@ -313,8 +313,6 @@ namespace Recipe_Generator.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CommentId");
-
-                    b.HasIndex("RecipeId");
 
                     b.HasIndex("UserId");
 
@@ -548,12 +546,6 @@ namespace Recipe_Generator.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Recipe_Generator.Models.Recipe", "Recipe")
-                        .WithMany()
-                        .HasForeignKey("RecipeId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
                     b.HasOne("Recipe_Generator.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
@@ -561,8 +553,6 @@ namespace Recipe_Generator.Migrations
                         .IsRequired();
 
                     b.Navigation("Comment");
-
-                    b.Navigation("Recipe");
 
                     b.Navigation("User");
                 });

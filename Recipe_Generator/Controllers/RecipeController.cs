@@ -77,9 +77,7 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-
         [HttpGet("GetRecipeByID/{id:int}", Name = "GetOneRecipe")]
-
         public async Task<IActionResult> GetRecipe(int id)
         {
             RecipeWithCategoryNameDTO RecipeDTO = new RecipeWithCategoryNameDTO();
@@ -174,8 +172,6 @@ namespace Recipe_Generator.Controllers
             }
 
         }
-
-
 
         [HttpPut("Update Recipe/{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromForm] RecipeWithCategoryNameDTO recipe)
