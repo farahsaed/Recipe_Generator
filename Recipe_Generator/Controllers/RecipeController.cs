@@ -69,7 +69,11 @@ namespace Recipe_Generator.Controllers
                 }
 
                 List<Recipe> recipesList = await query.ToListAsync();
-                return Ok(recipesList);
+                if(recipesList != null)
+                {
+                    return Ok(recipesList);
+                }
+                return NotFound("No recipes has been found");   
             }
             catch (Exception ex)
             {
@@ -83,7 +87,7 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> GetRecipe(int id)
         {
             RecipeWithCategoryNameDTO RecipeDTO = new RecipeWithCategoryNameDTO();
-            if (id != null || id != 0)
+            if (id != 0)
             {
                 Recipe? recipe = await _context.Recipes
                     .Include(c => c.Category)
@@ -102,14 +106,18 @@ namespace Recipe_Generator.Controllers
             var userId = userManager.GetUserId(HttpContext.User);
 
             List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
-            return Ok(userRecipes);
+            if(userRecipes != null)
+            {
+                return Ok(userRecipes);
+            }
+            return NotFound("You have not created recipes yet");
         }
 
         [HttpPost("Create recipes")]
         public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
         {
             var userId = userManager.GetUserId(HttpContext.User);
-            User user = await _context.Users.FindAsync(userId);
+            User? user = await _context.Users.FindAsync(userId);
             Recipe recipe = new Recipe();
 
             if (userId != null)
@@ -163,7 +171,7 @@ namespace Recipe_Generator.Controllers
                     // Create recipe
                     _context.Recipes.Add(recipe);
                     await _context.SaveChangesAsync();
-                    string url = Url.Link("GetOneRecipe", new { id = recipe.Id });
+                    string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
                     return Created(url, recipe);
                 }
                 return BadRequest(ModelState);
@@ -183,7 +191,7 @@ namespace Recipe_Generator.Controllers
             var userId = userManager.GetUserId(HttpContext.User);
             var recipeMapping = _mapper.Map<Recipe>(recipe);
 
-            Recipe oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
+            Recipe? oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
 
             if (ModelState.IsValid)
             {

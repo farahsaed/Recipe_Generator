@@ -157,7 +157,7 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
-        [HttpDelete("Delete category{id}")]
+        [HttpDelete("Delete category/{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             Category? categoryToDelete = await _context.Categories
