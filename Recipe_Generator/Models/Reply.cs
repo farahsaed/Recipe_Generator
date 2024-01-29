@@ -16,5 +16,8 @@ namespace Recipe_Generator.Models
         public string UserId { get; set; }
         public virtual User User { get; set; }
         public bool IsEdited { get; set; } = false;
+        public Recipe Recipe { get; set; }
+        [ForeignKey("Recipe")]
+        public int RecipeId { get; set; }
     }
 }
