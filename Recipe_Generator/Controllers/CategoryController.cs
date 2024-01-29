@@ -24,12 +24,30 @@ namespace Recipe_Generator.Controllers
 
 
         [HttpGet("All categories")]
-        public async Task<IActionResult> GetAllCategories()
+        public async Task<IActionResult> GetAllCategories(int pageNumber, int pageSize)
         {
+            int itemsToSkip = (pageNumber - 1) * pageSize;
             List<Category> categoryList = await _context.Categories
                 .Include(r => r.Recipes)
                 .ToListAsync();
-            return Ok(categoryList);
+
+            int totalCategoriesCount = await _context.Categories.CountAsync();
+
+            int totalPages = (int)Math.Ceiling((double)totalCategoriesCount / pageSize);
+
+            var pagedResult = new
+            {
+                PageNumber = pageNumber,
+                PageSize = pageSize,
+                TotalPages = totalPages,
+                TotalItems = totalCategoriesCount,
+                Recipes = categoryList
+            };
+            if (pagedResult != null)
+            {
+                return Ok(pagedResult);
+            }
+            return NotFound("No categories has been found");
         }
 
 
@@ -47,8 +65,11 @@ namespace Recipe_Generator.Controllers
                 .Include(c => c.Recipes)
                 .Where(c => c.CategoryName.ToLower() == query)
                 .ToListAsync();
-
-            return Ok(filteredCategory);
+            if(filteredCategory != null)
+            {
+                return Ok(filteredCategory);
+            }
+            return NotFound("Not found");
         }
 
 
@@ -157,6 +178,7 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
+
         [HttpDelete("Delete category/{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {

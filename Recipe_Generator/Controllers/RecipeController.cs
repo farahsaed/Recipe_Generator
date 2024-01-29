@@ -51,8 +51,12 @@ namespace Recipe_Generator.Controllers
                 TotalItems = totalRecipesCount,
                 Recipes = recipesList
             };
-
-            return Ok(pagedResult);
+            if(pagedResult != null)
+            {
+                return Ok(pagedResult);
+            }
+            return NotFound("No recipes has been found"); 
+            
         }
 
         [HttpGet("Queryed recipes")]
