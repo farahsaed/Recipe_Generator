@@ -3,7 +3,7 @@ namespace Recipe_Generator.DTO
 {
     public class CategoryWithRecipeListDTO
     {
-        public int Id { get; set; }
+        public int? Id { get; set; }
 
         public string CategoryName { get; set; }
         public IFormFile Image { get; set; }
