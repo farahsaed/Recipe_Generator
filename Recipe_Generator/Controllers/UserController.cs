@@ -9,6 +9,7 @@ using Microsoft.Extensions.Configuration.UserSecrets;
 using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Recipe_Generator.DTO;
+using Recipe_Generator.Interface;
 using Recipe_Generator.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -25,16 +26,19 @@ namespace Recipe_Generator.Controllers
         private readonly UserManager<User> userManager;
         private readonly IConfiguration configuration;
         private readonly IWebHostEnvironment _environment;
+        private readonly IEmailSender emailSender;
 
         public UserController( 
             UserManager<User> userManager,
             IConfiguration configuration , 
-            IWebHostEnvironment environment
+            IWebHostEnvironment environment,
+            IEmailSender emailSender
             )
         {
             this.userManager = userManager;
             this.configuration = configuration;
             _environment = environment;
+            this.emailSender = emailSender;
         }
 
         [HttpPost]
@@ -79,6 +83,7 @@ namespace Recipe_Generator.Controllers
             else
             {
                 result = await userManager.AddToRoleAsync(user, "user");
+                await emailSender.SendEmailAsync(user.Email,user.FirstName + " " + user.LastName);
             }
             if (result.Succeeded)
             {
