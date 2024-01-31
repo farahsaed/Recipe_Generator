@@ -128,7 +128,6 @@ namespace Recipe_Generator.Controllers
                 recipe.User.Id = userId;
                 recipe.CategoryId = recipeDTO.CategoryId;
                 recipe.CookTime = recipeDTO.CookTime;
-                recipe.Description = recipeDTO.Description;
                 recipe.Directions = recipeDTO.Directions;
                 recipe.Ingredients = recipeDTO.Ingredients;
                 recipe.Name = recipeDTO.Name;
