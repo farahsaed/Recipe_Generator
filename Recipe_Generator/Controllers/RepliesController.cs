@@ -19,10 +19,10 @@ namespace Recipe_Generator.Controllers
             this.db = db;
         }
 
-        [HttpPost("reply/{id}")]
-        public IActionResult AddReply(RepliesDTO repliesDTO, Guid id)
+        [HttpPost("reply/{cid}")]
+        public IActionResult AddReply(RepliesDTO repliesDTO, Guid cid)
         {
-            var comment = db.Comments.SingleOrDefault(c => c.Id == id);
+            var comment = db.Comments.SingleOrDefault(c => c.Id == cid);
             var userId = userManager.GetUserId(HttpContext.User);
             if (userId == null)
             {
@@ -56,6 +56,7 @@ namespace Recipe_Generator.Controllers
                 return NotFound("Unauthorized user");
             }
             var replies = db.Replies.ToList()
+                .Where(c => c.CommentId == comment.Id)
                 .OrderBy(r => r.CreatedOn);
             return Ok(replies);
         }

@@ -10,7 +10,7 @@ namespace Recipe_Generator.DTO
         {
             var sender = "RecipeIQ.devs@gmail.com";
             var password = "mznr fmde xlno qivh";
-            var subject = "Greeting";
+            var subject = "Greetings";
             var message = "Dear "+  name +
                 "\r\n\r\nWe hope this email finds you well and surrounded by the comforting aromas of your favorite dishes." +
                 " As the seasons change, we wanted to take a moment to express our gratitude for being a cherished part of RecipeIQ family." +
