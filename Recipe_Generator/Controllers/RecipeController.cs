@@ -27,7 +27,7 @@ namespace Recipe_Generator.Controllers
             this.userManager = userManager;
         }
 
-        [HttpGet("All recipes")]
+        [HttpGet("AllRecipes")]
         public async Task<IActionResult> GetPagedRecipes(int pageNumber, int pageSize)
         {
             int itemsToSkip = (pageNumber - 1) * pageSize;
@@ -59,7 +59,7 @@ namespace Recipe_Generator.Controllers
             
         }
 
-        [HttpGet("Queryed recipes")]
+        [HttpGet("QueryedRecipes")]
         public async Task<IActionResult> SearchforRecipes(string? searchTerm)
         {
             try
@@ -102,7 +102,7 @@ namespace Recipe_Generator.Controllers
                 return StatusCode(404);
             }
         }
-        [HttpGet("User recipes")]
+        [HttpGet("UserRecipes")]
         public async Task<IActionResult> GetMyRecipes()
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -115,7 +115,7 @@ namespace Recipe_Generator.Controllers
             return NotFound("You have not created recipes yet");
         }
 
-        [HttpPost("Create recipes")]
+        [HttpPost("CreateRecipe")]
         public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -185,7 +185,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpPut("Update Recipe/{id}")]
+        [HttpPut("UpdateRecipe/{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromForm] RecipeWithCategoryNameDTO recipe)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -237,7 +237,7 @@ namespace Recipe_Generator.Controllers
             return BadRequest(ModelState);
         }
 
-        [HttpDelete("Delete recipe/{id:int}")]
+        [HttpDelete("DeleteRecipe/{id:int}")]
         public async Task<IActionResult> DeleteRecipe(int id)
 
         {

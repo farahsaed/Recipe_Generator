@@ -42,7 +42,7 @@ namespace Recipe_Generator.Controllers
             return Ok();
         }
 
-        [HttpGet("Get all replies/{id}")]
+        [HttpGet("GetAllReplies/{id}")]
         public IActionResult GetAllReplies(Guid id)
         {
             var comment = db.Comments.SingleOrDefault(c => c.Id == id);
@@ -60,7 +60,7 @@ namespace Recipe_Generator.Controllers
             return Ok(replies);
         }
 
-        [HttpPost("Edit reply/{rid}/{cid}")]
+        [HttpPost("EditReply/{rid}/{cid}")]
         public IActionResult EditReply(Guid rid, Guid cid, RepliesDTO repliesDTO)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -85,7 +85,7 @@ namespace Recipe_Generator.Controllers
             return Ok(reply);
         }
 
-        [HttpDelete("Delete comment/{rid}/{cid}")]
+        [HttpDelete("DeleteComment/{rid}/{cid}")]
         public IActionResult DeleteReply(Guid rid,Guid cid) 
         {
             var userId = userManager.GetUserId(HttpContext.User);

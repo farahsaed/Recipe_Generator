@@ -20,7 +20,7 @@ namespace Recipe_Generator.Controllers
             this._db = db;
         }
 
-        [HttpPost("Add comment/{id}")]
+        [HttpPost("AddComment/{id}")]
         public IActionResult CreateComment(CommentsDTO commentDTO,int id)
         {
             var userId = _userManager.GetUserId(HttpContext.User);
@@ -47,7 +47,7 @@ namespace Recipe_Generator.Controllers
             return Ok(comment);
         }
 
-        [HttpGet("All comments/{rid}")]
+        [HttpGet("AllComments/{rid}")]
         public IActionResult GetComments(int rid)
         {
             var recipe = _db.Recipes.SingleOrDefault(c => c.Id==rid);

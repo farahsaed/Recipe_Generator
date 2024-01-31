@@ -31,7 +31,7 @@ namespace Recipe_Generator.Controllers
             _environment = environment;
         }
 
-        [HttpPost("Create User")]
+        [HttpPost("CreateUser")]
         public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
             User user = new User();
@@ -76,7 +76,7 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        [HttpPost("Update user/{id}")]
+        [HttpPost("UpdateUser/{id}")]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -102,7 +102,7 @@ namespace Recipe_Generator.Controllers
             return NotFound("User not found");
         }
 
-        [HttpDelete("Delete User/{id}")]
+        [HttpDelete("DeleteUser/{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -117,7 +117,7 @@ namespace Recipe_Generator.Controllers
             return NotFound("User not found");
         }
 
-        [HttpGet("All users")]
+        [HttpGet("AllUsers")]
         public async Task<IActionResult> GetAllUsers(int page, int limit)
         {
             var users = userManager.Users;
@@ -144,7 +144,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpGet("Search user")]
+        [HttpGet("SearchUser")]
         public IActionResult GetSearchedUser(string? searchTerm)
         {
             IQueryable<User> users;
@@ -167,7 +167,7 @@ namespace Recipe_Generator.Controllers
             return NotFound("No user matches " + searchTerm);
         }
 
-        [HttpGet("Get User/{id}")]
+        [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);

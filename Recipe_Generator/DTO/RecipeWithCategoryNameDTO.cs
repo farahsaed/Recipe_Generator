@@ -6,7 +6,7 @@ namespace Recipe_Generator.DTO
     {
         public int? Id { get; set; }
         public string Name { get; set; }
-        public IFormFile? Image { get; set; }
+        public IFormFile Image { get; set; }
         public string  Description { get; set;}
         public string PrepareTime { get; set;}
         public string CategoryName { get; set;}

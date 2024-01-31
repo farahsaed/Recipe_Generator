@@ -24,7 +24,7 @@ namespace Recipe_Generator.Controllers
             this._db = db;
         }
 
-        [HttpGet("All ToDo items")]
+        [HttpGet("AllToDoItems")]
         public async Task<IActionResult> GetAll()
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -51,7 +51,7 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpGet("Deleted items")]
+        [HttpGet("DeletedItems")]
         public async Task<IActionResult> GetDeletedItems()
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -68,7 +68,7 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpPost("Create a ToDo item")]
+        [HttpPost("CreateToDoItem")]
         public async Task<IActionResult> CreateToDo(UserWithToDoDTO toDoDTO)
         {
             ToDo toDo = new ToDo();
@@ -100,7 +100,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpPost("Update item/id:Guid")]
+        [HttpPost("UpdateItem/id:Guid")]
         public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO, Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -124,7 +124,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpPost("Undo Deleted item/id:Guid")]
+        [HttpPost("UndoDeletedItem/id:Guid")]
         public async Task<IActionResult> UndoDelete(Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -141,7 +141,7 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpDelete("Delete item/id:Guid")]
+        [HttpDelete("DeleteItem/id:Guid")]
         public async Task<IActionResult> DeleteToDo(Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -157,7 +157,7 @@ namespace Recipe_Generator.Controllers
             return Ok("Todo deleted successfully");
         }
 
-        [HttpPost("Add Image/{id}")]
+        [HttpPost("AddImage/{id}")]
         public async Task<IActionResult> AddImage(Guid id, IFormFile Image)
         {
             var userId = userManager.GetUserId(HttpContext.User);

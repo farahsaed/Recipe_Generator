@@ -23,7 +23,7 @@ namespace Recipe_Generator.Controllers
         }
 
 
-        [HttpGet("All categories")]
+        [HttpGet("AllCategories")]
         public async Task<IActionResult> GetAllCategories(int pageNumber, int pageSize)
         {
             int itemsToSkip = (pageNumber - 1) * pageSize;
@@ -51,7 +51,7 @@ namespace Recipe_Generator.Controllers
         }
 
 
-        [HttpGet("Filtered Categories")]
+        [HttpGet("FilteredCategories")]
         public async Task<IActionResult> FilterByCategory(string query)
         {
             query = query.Trim().ToLower();
@@ -89,7 +89,7 @@ namespace Recipe_Generator.Controllers
             else { return NotFound(); }
         }
 
-        [HttpPost("Create category")]
+        [HttpPost("CreateCategory")]
         public async Task<IActionResult> CreateCategory([FromForm] CategoryWithRecipeListDTO category)
         {
             var categoryMapping = _mapper.Map<Category>(category);
@@ -132,7 +132,7 @@ namespace Recipe_Generator.Controllers
         }
 
 
-        [HttpPut("Update category/{id}")]
+        [HttpPut("UpdateCategory/{id}")]
         public async Task<IActionResult> UpdateCategory([FromForm] CategoryWithRecipeListDTO category, int id)
         {
             var categoryMapping = _mapper.Map<Category>(category);
@@ -179,7 +179,7 @@ namespace Recipe_Generator.Controllers
             return BadRequest(ModelState);
         }
 
-        [HttpDelete("Delete category/{id}")]
+        [HttpDelete("DeleteCategory/{id}")]
         public async Task<IActionResult> DeleteCategory(int id)
         {
             Category? categoryToDelete = await _context.Categories
