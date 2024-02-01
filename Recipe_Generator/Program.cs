@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
 using Recipe_Generator.Data;
+using Recipe_Generator.DTO;
+using Recipe_Generator.Interface;
 using Recipe_Generator.Models;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -26,6 +28,9 @@ internal class Program
                 }
                 );
         });
+
+        builder.Services.AddTransient<IEmailSender, EmailSender>();
+
         //builder.Services.AddHttpClient("myClient", client => client.Timeout = TimeSpan.FromMinutes(5));
         builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle

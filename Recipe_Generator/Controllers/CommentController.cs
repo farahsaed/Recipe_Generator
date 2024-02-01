@@ -20,11 +20,11 @@ namespace Recipe_Generator.Controllers
             this._db = db;
         }
 
-        [HttpPost("AddComment/{id}")]
-        public IActionResult CreateComment(CommentsDTO commentDTO,int id)
+        [HttpPost("AddComment/{rid}")]
+        public IActionResult CreateComment(CommentsDTO commentDTO,int rid)
         {
             var userId = _userManager.GetUserId(HttpContext.User);
-            var recipe = _db.Recipes.SingleOrDefault(c => c.Id == id);
+            var recipe = _db.Recipes.SingleOrDefault(c => c.Id == rid);
 
             if(userId == null)
             {
