@@ -235,7 +235,19 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
-
+        [HttpPost("Rate/{id}")]
+        public IActionResult RateRecipe(int id, [FromBody] int rating)
+        {
+            var recipe =  _context.Recipes.FirstOrDefault(r => id == r.Id);
+            if(recipe != null)
+            {
+               
+                recipe.Rating = (recipe.Rating * recipe.TotalRating + rating) / (recipe.TotalRating + 1);
+                recipe.TotalRating++;
+                return Ok(recipe);
+            }
+            return NotFound("Recipe is not found");
+        }
         [HttpDelete("DeleteRecipe/{id:int}")]
         public async Task<IActionResult> DeleteRecipe(int id)
 

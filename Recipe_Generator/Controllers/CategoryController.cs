@@ -41,7 +41,7 @@ namespace Recipe_Generator.Controllers
                 PageSize = pageSize,
                 TotalPages = totalPages,
                 TotalItems = totalCategoriesCount,
-                Recipes = categoryList
+                Categories = categoryList
             };
             if (pagedResult != null)
             {
@@ -69,7 +69,7 @@ namespace Recipe_Generator.Controllers
             {
                 return Ok(filteredCategory);
             }
-            return NotFound("Not found");
+            return NotFound("No categories found");
         }
 
 
@@ -86,7 +86,7 @@ namespace Recipe_Generator.Controllers
 
                 return Ok(category);
             }
-            else { return NotFound(); }
+            else { return NotFound("Category not found"); }
         }
 
         [HttpPost("CreateCategory")]
