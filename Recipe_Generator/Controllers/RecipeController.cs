@@ -93,6 +93,7 @@ namespace Recipe_Generator.Controllers
             {
                 Recipe? recipe = await _context.Recipes
                     .Include(c => c.Category)
+                    .Include(u => u.User)
                     .Where(r => r.Id == id)
                     .FirstOrDefaultAsync();
                 return Ok(recipe);
@@ -236,17 +237,30 @@ namespace Recipe_Generator.Controllers
             return BadRequest(ModelState);
         }
         [HttpPost("Rate/{id}")]
-        public IActionResult RateRecipe(int id, [FromBody] int rating)
+        public IActionResult RateRecipe(int id, int ratingValue)
         {
-            var recipe =  _context.Recipes.FirstOrDefault(r => id == r.Id);
-            if(recipe != null)
-            {
-               
-                recipe.Rating = (recipe.Rating * recipe.TotalRating + rating) / (recipe.TotalRating + 1);
-                recipe.TotalRating++;
-                return Ok(recipe);
+            var userId = userManager.GetUserId(HttpContext.User);
+            var recipe = _context.Recipes.Include(r=>r.Ratings).FirstOrDefault(r => id == r.Id);
+            
+            User? user = _context.Users.Find(userId); 
+            if (recipe == null)
+            {               
+                return NotFound();
             }
-            return NotFound("Recipe is not found");
+            // NotFound("Recipe is not found");
+            var rating = new Rating
+            {
+                RecipeId = id,
+                RatingValue = ratingValue,
+                User = user
+            };
+            _context.Ratings.Add(rating);
+            _context.SaveChanges();
+
+            recipe.Ratings.Add(rating);
+            recipe.AverageRating = recipe.CalcAvgRating();
+            _context.SaveChanges();
+            return Ok(recipe.AverageRating); 
         }
         [HttpDelete("DeleteRecipe/{id:int}")]
         public async Task<IActionResult> DeleteRecipe(int id)
