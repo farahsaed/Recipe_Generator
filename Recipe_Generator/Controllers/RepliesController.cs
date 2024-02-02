@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
+using Recipe_Generator.Interface;
 using Recipe_Generator.Models;
 
 namespace Recipe_Generator.Controllers
@@ -13,17 +14,22 @@ namespace Recipe_Generator.Controllers
     {
         private readonly UserManager<User> userManager;
         private readonly RecipeContext db;
-        public RepliesController(UserManager<User> userManager, RecipeContext db)
+        private readonly IEmailSender emailSender;
+
+        public RepliesController(UserManager<User> userManager, RecipeContext db , IEmailSender emailSender)
         {
             this.userManager = userManager;
             this.db = db;
+            this.emailSender = emailSender;
         }
 
         [HttpPost("reply/{cid}")]
-        public IActionResult AddReply(RepliesDTO repliesDTO, Guid cid)
+        public async Task<IActionResult> AddReply(RepliesDTO repliesDTO, Guid cid)
         {
             var comment = db.Comments.SingleOrDefault(c => c.Id == cid);
+            var commentUser = await userManager.FindByIdAsync(comment.UserId);
             var userId = userManager.GetUserId(HttpContext.User);
+            var replyUser = await userManager.FindByIdAsync(userId);
             if (userId == null)
             {
                 return NotFound("Unauthorized user");
@@ -39,6 +45,8 @@ namespace Recipe_Generator.Controllers
             reply.CommentId = comment.Id;
             db.Replies.Add(reply);
             db.SaveChanges();
+            await emailSender.SendEmailNotification(commentUser.Email, commentUser.FirstName + " " + commentUser.LastName,
+                reply.Text, reply.CreatedOn, replyUser.UserName,"reply");
             return Ok();
         }
 

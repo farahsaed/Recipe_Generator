@@ -6,10 +6,12 @@ namespace Recipe_Generator.DTO
 {
     public class EmailSender : IEmailSender
     {
-        public Task SendEmailAsync(string email,string name)
+        
+        protected readonly string sender = "RecipeIQ.devs@gmail.com";
+        protected readonly string password = "mznr fmde xlno qivh";
+
+        public Task SendEmail(string email,string name)
         {
-            var sender = "RecipeIQ.devs@gmail.com";
-            var password = "mznr fmde xlno qivh";
             var subject = "Greetings";
             var message = "Dear "+  name +
                 "\r\n\r\nWe hope this email finds you well and surrounded by the comforting aromas of your favorite dishes." +
@@ -43,5 +45,37 @@ namespace Recipe_Generator.DTO
                     )
                 );
         }
+
+        public Task SendEmailNotification(string email, string name , string comment , DateTime time ,string username,string msg)
+        {
+            var subject = "Notification";
+            var message = "Dear "+ name +
+                "\r\n\r\nYou have received a new "+ msg +" on your RecipeIQ account. " +
+                "Here are the details:" +
+                "\r\n\r\n" +msg+ ": "+ comment +
+                "\r\n\r\nPosted By: " + username +
+                "\r\n\r\nDate and Time: " + time +
+                "\r\n\r\nTo view and respond to the comment, please log in to your RecipeIQ account." +
+                "\r\n\r\nThank you for staying engaged with our community!" +
+                "\r\n\r\nBest regards,RecipeIQ family" +
+                "\r\nRecipeIQ.devs@gmail.com";
+
+            var client = new SmtpClient("smtp.gmail.com", 587)
+            {
+                EnableSsl = true,
+                Credentials = new NetworkCredential(sender, password)
+            };
+
+            client.UseDefaultCredentials = false;
+
+            return client.SendMailAsync(
+                new MailMessage(
+                    from : sender,
+                    to : email,
+                    subject: subject,
+                    message
+                    ));
+        }
+
     }
 }
