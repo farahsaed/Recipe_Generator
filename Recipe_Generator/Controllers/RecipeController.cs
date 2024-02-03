@@ -247,20 +247,23 @@ namespace Recipe_Generator.Controllers
             {               
                 return NotFound();
             }
-            // NotFound("Recipe is not found");
-            var rating = new Rating
+            if(userId != null)
             {
-                RecipeId = id,
-                RatingValue = ratingValue,
-                User = user
-            };
-            _context.Ratings.Add(rating);
-            _context.SaveChanges();
+                var rating = new Rating
+                {
+                    RecipeId = id,
+                    RatingValue = ratingValue,
+                    User = user
+                };
+                _context.Ratings.Add(rating);
+                _context.SaveChanges();
 
-            recipe.Ratings.Add(rating);
-            recipe.AverageRating = recipe.CalcAvgRating();
-            _context.SaveChanges();
-            return Ok(recipe.AverageRating); 
+                recipe.Ratings.Add(rating);
+                recipe.AverageRating = recipe.CalcAvgRating();
+                _context.SaveChanges();
+                return Ok(rating);
+            }
+            return BadRequest("Unauthorized");
         }
         [HttpDelete("DeleteRecipe/{id:int}")]
         public async Task<IActionResult> DeleteRecipe(int id)
