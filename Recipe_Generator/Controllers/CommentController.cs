@@ -28,7 +28,7 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> CreateComment(CommentsDTO commentDTO,int rid)
         {
             var userId = _userManager.GetUserId(HttpContext.User);
-            var recipe = _db.Recipes.Include(r => r.User).SingleOrDefault(r => r.Id == rid);
+            var recipe = _db.Recipes.Include(c => c.User).SingleOrDefault(c => c.Id == rid);
             var user = await _userManager.FindByIdAsync(userId);
             if(userId == null)
             {
@@ -48,16 +48,21 @@ namespace Recipe_Generator.Controllers
             comment.RecipeId = recipe.Id;
             _db.Comments.Add(comment);
             _db.SaveChanges();
-            await emailSender.SendEmailNotification(recipe.User.Email, 
-                recipe.User.FirstName + " " + recipe.User.LastName,
-                comment.Description,comment.CreatedOn,user.UserName,"comment");
+
+            if (recipe.User.Id != userId)
+            {
+                await emailSender.SendEmailNotification(recipe.User.Email,
+                       recipe.User.FirstName + " " + recipe.User.LastName,
+                       comment.Description, comment.CreatedOn, user.UserName, "comment");
+            }
+           
             return Ok(comment);
         }
 
         [HttpGet("AllComments/{rid}")]
         public IActionResult GetComments(int rid)
         {
-            var recipe = _db.Recipes.SingleOrDefault(r => r.Id==rid);
+            var recipe = _db.Recipes.SingleOrDefault(c => c.Id==rid);
             if(recipe == null)
             {
                 return NotFound("Recipe not found");
