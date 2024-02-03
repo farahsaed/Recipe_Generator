@@ -16,6 +16,7 @@ namespace Recipe_Generator.Data
         public DbSet<Reply> Replies { get; set; }
         public DbSet<ToDo> ToDos { get; set; }
 
+        public DbSet<Rating> Ratings { get; set; }
 
     }
 }
