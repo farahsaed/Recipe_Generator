@@ -55,8 +55,9 @@ namespace Recipe_Generator.Controllers
                     await emailSender.SendEmailNotification(commentUser.Email, commentUser.FirstName + " " + commentUser.LastName,
                                                             reply.Text, reply.CreatedOn, replyUser.UserName, "reply");
                 }
-                
-                return Ok(reply);
+
+
+                return Ok();
 
             }
             return BadRequest("Model not valid");
