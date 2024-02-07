@@ -76,7 +76,8 @@ namespace Recipe_Generator.Controllers
             await userManager.CreateAsync(user, userDTO.Password);
 
             IdentityResult result ;
-            if (user.Email.Contains("admin") && user.UserName.Contains("admin"))
+            if (user.Email.Contains("admin") && user.UserName.Contains("admin") ||
+                user.Email.Contains("Admin") && user.UserName.Contains("Admin"))
             {
                 result = await userManager.AddToRoleAsync(user, "admin");
             }

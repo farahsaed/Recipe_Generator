@@ -38,16 +38,30 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Comment not exist");
             }
-            var reply = new Reply();
-            reply.Text = repliesDTO.Reply;
-            reply.CreatedOn = DateTime.Now;
-            reply.UserId = userId;
-            reply.CommentId = comment.Id;
-            db.Replies.Add(reply);
-            db.SaveChanges();
-            await emailSender.SendEmailNotification(commentUser.Email, commentUser.FirstName + " " + commentUser.LastName,
-                reply.Text, reply.CreatedOn, replyUser.UserName,"reply");
-            return Ok();
+            if(ModelState.IsValid)
+            {
+                var reply = new Reply();
+                reply.Id = Guid.NewGuid();
+                reply.Text = repliesDTO.Reply;
+                reply.CreatedOn = DateTime.Now;
+                reply.UserId = userId;
+                reply.CommentId = comment.Id;
+                reply.RecipeId = comment.RecipeId;
+                db.Replies.Add(reply);
+                db.SaveChangesAsync();
+
+                if (commentUser.Id != userId)
+                {
+                    await emailSender.SendEmailNotification(commentUser.Email, commentUser.FirstName + " " + commentUser.LastName,
+                                                            reply.Text, reply.CreatedOn, replyUser.UserName, "reply");
+                }
+
+
+                return Ok();
+
+            }
+            return BadRequest("Model not valid");
+
         }
 
         [HttpGet("GetAllReplies/{id}")]

@@ -48,9 +48,14 @@ namespace Recipe_Generator.Controllers
             comment.RecipeId = recipe.Id;
             _db.Comments.Add(comment);
             _db.SaveChanges();
-            await emailSender.SendEmailNotification(recipe.User.Email, 
-                recipe.User.FirstName + " " + recipe.User.LastName,
-                comment.Description,comment.CreatedOn,user.UserName,"comment");
+
+            if (recipe.User.Id != userId)
+            {
+                await emailSender.SendEmailNotification(recipe.User.Email,
+                       recipe.User.FirstName + " " + recipe.User.LastName,
+                       comment.Description, comment.CreatedOn, user.UserName, "comment");
+            }
+           
             return Ok(comment);
         }
 

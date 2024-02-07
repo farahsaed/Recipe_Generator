@@ -34,10 +34,10 @@ namespace Recipe_Generator.Controllers
                 .Where(u => u.UserId == userId)
                 .OrderByDescending(x => x.CreatedDate)
                 .ToListAsync();
-
+            
             if (todo.Count == 0)
-                return NotFound();
-
+                return NotFound("No todos found");
+           
             return Ok(todo);
         }
 
@@ -100,7 +100,7 @@ namespace Recipe_Generator.Controllers
 
         }
 
-        [HttpPost("UpdateItem/id:Guid")]
+        [HttpPost("UpdateItem/{id:Guid}")]
         public async Task<IActionResult> UpdateToDo(UserWithToDoDTO toDoDTO, Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -108,10 +108,10 @@ namespace Recipe_Generator.Controllers
             if (userId != null)
             {
                 var todo = await _db.ToDos.FindAsync(id);
+                
                 if (todo == null)
-                    return NotFound();
+                    return NotFound("Todo not found");
 
-                todo.UserId = userId;
                 todo.IsCompleted = toDoDTO.IsCompleted;
                 todo.UpdatedTime = DateTime.Now;
                 todo.Descriprtion = toDoDTO.Descriprtion;
@@ -119,12 +119,10 @@ namespace Recipe_Generator.Controllers
                 await _db.SaveChangesAsync();
                 return Ok(todo);
             }
-            else { return NotFound(); }
-
-
+            else { return NotFound("Unauthorized user. You must login first"); }
         }
 
-        [HttpPost("UndoDeletedItem/id:Guid")]
+        [HttpPost("UndoDeletedItem/{id:Guid}")]
         public async Task<IActionResult> UndoDelete(Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -141,14 +139,14 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpDelete("DeleteItem/id:Guid")]
+        [HttpDelete("DeleteItem/{id:Guid}")]
         public async Task<IActionResult> DeleteToDo(Guid id)
         {
             var userId = userManager.GetUserId(HttpContext.User);
 
             var todo = await _db.ToDos.FindAsync(id);
             if (todo == null)
-                return NotFound();
+                return NotFound("Todo not found");
 
             todo.UserId = userId;
             todo.DeletedDate = DateTime.Now;
@@ -190,7 +188,7 @@ namespace Recipe_Generator.Controllers
                     todo.ImagePath = @"images\TodoImages\" + fileName + extension;
                     await _db.SaveChangesAsync();
 
-                    return Ok("Iamge uploaded successfuly");
+                    return Ok("Image uploaded successfuly");
                 }
             }
             
