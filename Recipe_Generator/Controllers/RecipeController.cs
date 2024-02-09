@@ -69,7 +69,8 @@ namespace Recipe_Generator.Controllers
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     searchTerm = searchTerm.Trim().ToLower();
-                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm));
+                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm)
+                                        || r.User.UserName.ToLower().Contains(searchTerm));                
                 }
 
                 List<Recipe> recipesList = await query.ToListAsync();
