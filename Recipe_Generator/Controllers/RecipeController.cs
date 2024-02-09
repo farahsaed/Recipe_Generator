@@ -64,21 +64,20 @@ namespace Recipe_Generator.Controllers
         {
             try
             {
-                IQueryable<Recipe> query = _context.Recipes.Include(c => c.Category).Include(u => u.User);
+                IQueryable<Recipe> query = _context.Recipes.Include(u => u.User);
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     searchTerm = searchTerm.Trim().ToLower();
-                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm)
-                                        || r.User.UserName.ToLower().Contains(searchTerm));                
+                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm) || r.User.UserName.ToLower().Contains(searchTerm));
                 }
 
                 List<Recipe> recipesList = await query.ToListAsync();
-                if(recipesList != null)
+                if (recipesList != null)
                 {
                     return Ok(recipesList);
                 }
-                return NotFound("No recipes has been found");   
+                return NotFound("No recipes has been found");
             }
             catch (Exception ex)
             {
