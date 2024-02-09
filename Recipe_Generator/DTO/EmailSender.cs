@@ -6,14 +6,36 @@ namespace Recipe_Generator.DTO
 {
     public class EmailSender : IEmailSender
     {
+        private readonly IConfiguration configuration;
         
-        protected readonly string sender = "RecipeIQ.devs@gmail.com";
-        protected readonly string password = "mznr fmde xlno qivh";
-
-        public Task SendEmail(string email,string name)
+        public EmailSender(IConfiguration configuration)
         {
-            var subject = "Greetings";
-            var message = "Dear "+  name +
+            this.configuration = configuration;
+        }
+
+        private string Sender()
+        {
+            string sender = configuration.GetSection("EmailData").GetSection("Email").Value;
+            return sender;
+        }
+        private string Password()
+        {
+            string password = configuration.GetSection("EmailData").GetSection("Password").Value;
+            return password;
+        }
+        private string SMTPHost()
+        {
+            string smtpHost = configuration.GetSection("EmailData").GetSection("SMTPHost").Value;
+            return smtpHost;
+        }
+        private int SMTPPort()
+        {
+            var smtpHost = Convert.ToInt32(configuration.GetSection("EmailData").GetSection("SMTPPort").Value);
+            return smtpHost;
+        }
+        private string GreetingMessage(string name)
+        {
+            string message = "Dear " + name +
                 "\r\n\r\nWe hope this email finds you well and surrounded by the comforting aromas of your favorite dishes." +
                 " As the seasons change, we wanted to take a moment to express our gratitude for being a cherished part of RecipeIQ family." +
                 "\r\n\r\nIn the spirit of joy and good food, we've curated a collection of heartfelt greetings and culinary inspiration to brighten your day:" +
@@ -28,12 +50,40 @@ namespace Recipe_Generator.DTO
                 "\r\n\r\nWishing you a season filled with delicious moments and shared joy!" +
                 "\r\n\r\nWarm regards, RecipeIQ family\r\n" +
                 "RecipeIQ.devs@gmail.com";
+            return message;
+         }
+        private string NotificationMessage(string name , string msg ,
+                                           string comment, string username ,
+                                           DateTime time) 
+        {
+            string message ="Dear "+ name +
+                            "\r\n\r\nYou have received a new "+ msg +" on your RecipeIQ account. " +
+                            "Here are the details:" +
+                            "\r\n\r\n" +msg+ ": "+ comment +
+                            "\r\n\r\nPosted By: " + username +
+                            "\r\n\r\nDate and Time: " + time +
+                            "\r\n\r\nTo view and respond to the comment, please log in to your RecipeIQ account." +
+                            "\r\n\r\nThank you for staying engaged with our community!" +
+                            "\r\n\r\nBest regards,RecipeIQ family" +
+                            "\r\nRecipeIQ.devs@gmail.com";
+            return message;
+        }
 
-            var client = new SmtpClient("smtp.gmail.com",587)
+        public Task SendEmailGreeting(string email,string name)
+        {
+            var sender = Sender();
+            var password = Password();
+            var subject = "Greetings";
+            var message = GreetingMessage(name);
+            var smtpHost = SMTPHost();
+            var smtpPort = SMTPPort();
+
+            var client = new SmtpClient(smtpHost, smtpPort)
             {
                 EnableSsl = true,
                 Credentials = new NetworkCredential(sender, password)
             };
+
             client.UseDefaultCredentials = false;
 
             return client.SendMailAsync(
@@ -45,22 +95,18 @@ namespace Recipe_Generator.DTO
                     )
                 );
         }
-
-        public Task SendEmailNotification(string email, string name , string comment , DateTime time ,string username,string msg)
+        public Task SendEmailNotification(string email, string name ,
+                                          string comment , DateTime time ,
+                                          string username,string msg)
         {
+            var sender = Sender();
+            var password = Password();
             var subject = "Notification";
-            var message = "Dear "+ name +
-                "\r\n\r\nYou have received a new "+ msg +" on your RecipeIQ account. " +
-                "Here are the details:" +
-                "\r\n\r\n" +msg+ ": "+ comment +
-                "\r\n\r\nPosted By: " + username +
-                "\r\n\r\nDate and Time: " + time +
-                "\r\n\r\nTo view and respond to the comment, please log in to your RecipeIQ account." +
-                "\r\n\r\nThank you for staying engaged with our community!" +
-                "\r\n\r\nBest regards,RecipeIQ family" +
-                "\r\nRecipeIQ.devs@gmail.com";
+            var message = NotificationMessage(name , msg,comment,username,time);
+            var smtpHost = SMTPHost();
+            var smtpPort = SMTPPort();
 
-            var client = new SmtpClient("smtp.gmail.com", 587)
+            var client = new SmtpClient(smtpHost, smtpPort)
             {
                 EnableSsl = true,
                 Credentials = new NetworkCredential(sender, password)
