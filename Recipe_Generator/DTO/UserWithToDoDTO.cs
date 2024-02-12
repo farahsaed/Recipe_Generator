@@ -9,5 +9,6 @@
         public DateTime? DeletedDate { get; set; } = null;
         public DateTime? UpdatedTime { get; set; } = null;
         //public IFormFile? Image { get; set; }
+        public string Tilte { get; set; }
     }
 }
