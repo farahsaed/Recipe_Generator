@@ -104,7 +104,7 @@ namespace Recipe_Generator.Controllers
                     await _db.SaveChangesAsync();
                     return Ok("ToDo item created successfully");
                 }
-                return BadRequest();
+                return BadRequest(ModelState);
             }
             else
             {
