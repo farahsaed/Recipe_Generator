@@ -6,6 +6,8 @@ using Recipe_Generator.Models;
 using Recipe_Generator.DTO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using System.Data;
+using System.Collections.Generic;
 
 namespace Recipe_Generator.Controllers
 {
@@ -33,12 +35,17 @@ namespace Recipe_Generator.Controllers
                 .Where(x => x.IsDeleted == false)
                 .Where(u => u.UserId == userId)
                 .OrderByDescending(x => x.CreatedDate)
-                .ToListAsync();
-            
+            .ToListAsync();
+
+            var titles = (from t in todo select t.Title).ToList();
+
             if (todo.Count == 0)
-                return NotFound("No todos found");
+                return NotFound("Todo is empty");
+
+            if (titles == null)
+                return BadRequest("No todo was found");
            
-            return Ok(todo);
+            return Ok(titles);
         }
 
         [HttpGet("Item/id:Guid")]
@@ -80,6 +87,12 @@ namespace Recipe_Generator.Controllers
                 toDo.UserId = userId;
                 toDo.Id = Guid.NewGuid();
                 toDo.Descriprtion = toDoDTO.Descriprtion;
+
+                if (toDoDTO.Tilte == "" || toDoDTO.Tilte == null)
+                    toDo.Title = toDoDTO.Descriprtion;
+                else
+                    toDo.Title = toDoDTO.Tilte;
+
                 toDo.CreatedDate = DateTime.Now;
                 toDo.IsDeleted = false;
                 toDo.IsCompleted = false;
@@ -91,7 +104,7 @@ namespace Recipe_Generator.Controllers
                     await _db.SaveChangesAsync();
                     return Ok("ToDo item created successfully");
                 }
-                return BadRequest();
+                return BadRequest(ModelState);
             }
             else
             {
@@ -137,8 +150,7 @@ namespace Recipe_Generator.Controllers
             todo.CreatedDate = DateTime.Now;
             await _db.SaveChangesAsync();
             return Ok(todo);
-        }A
-
+        }
         [HttpDelete("DeleteItem/{id:Guid}")]
         public async Task<IActionResult> DeleteToDo(Guid id)
         {

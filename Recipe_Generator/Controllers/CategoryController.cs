@@ -88,7 +88,28 @@ namespace Recipe_Generator.Controllers
             }
             else { return NotFound("Category not found"); }
         }
+        [HttpGet]
+        public async Task<IActionResult> SearchinCategories(string searchTerm)
+        {
+            List<Category> categoriesList = await _context.Categories.Include(r => r.Recipes).ToListAsync();
 
+            if (!string.IsNullOrWhiteSpace(searchTerm))
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                categoriesList = categoriesList.Where(c => c.CategoryName.ToLower().Contains(searchTerm)).ToList();
+                //List<Category> categoriesesList = await _context.Categories.Include(r => r.Recipes).ToListAsync();
+            }
+            else
+            {
+                if(categoriesList != null)
+                {
+                    return Ok(categoriesList);
+                }
+                return NotFound("No categories has been found");
+            }
+            return Ok(categoriesList);
+
+        } 
         [HttpPost("CreateCategory")]
         public async Task<IActionResult> CreateCategory([FromForm] CategoryWithRecipeListDTO category)
         {

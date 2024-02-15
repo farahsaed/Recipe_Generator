@@ -15,5 +15,6 @@ namespace Recipe_Generator.Models
         public User User { get; set; }
         [ForeignKey("User")]
         public string UserId { get; set; }
+        public string? Title { get; set; }
     }
 }
