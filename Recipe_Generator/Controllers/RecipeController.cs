@@ -8,10 +8,12 @@ using AutoMapper;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Authorization;
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class RecipeController : ControllerBase
     {
 
