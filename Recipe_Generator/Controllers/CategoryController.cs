@@ -48,13 +48,13 @@ namespace Recipe_Generator.Controllers
                 TotalItems = totalCategoriesCount,
                 Categories = categoryList
             };
-            if (categoryList != null)
+            if (pagedResult != null)
             {
                 //foreach(var item in categoryList)
                 //{
                 //    item.ImageUrl = "http://localhost:5115/" + item.ImageUrl;
                 //}
-                return Ok(categoryList);
+                return Ok(pagedResult);
             }
             return NotFound("No categories has been found");
         }
