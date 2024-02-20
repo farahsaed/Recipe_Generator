@@ -55,7 +55,13 @@ namespace Recipe_Generator.Controllers
             };
             if(pagedResult != null)
             {
+                foreach (var item in pagedResult.Recipes)
+                {
+                    //string? url = Url.Link("AllRecipes", "");
+                    item.Image = "http://localhost:5115/" + item.Image;
+                }
                 return Ok(pagedResult);
+
             }
             return NotFound("No recipes has been found"); 
             
@@ -228,6 +234,10 @@ namespace Recipe_Generator.Controllers
 
                 if (oldRecipe != null)
                 {
+                    if (recipeMapping.Id == 0)
+                    {
+                        recipeMapping.Id = id;
+                    }
                     //_context.Recipes.Update(recipeMapping);
                     _context.Entry(oldRecipe).CurrentValues.SetValues(recipeMapping);
                     await _context.SaveChangesAsync();
@@ -289,5 +299,11 @@ namespace Recipe_Generator.Controllers
             }
             return NotFound();
         }
+        //[NonAction]
+        //public IActionResult GetImagePath()
+        //{
+        //    string wwwRootPath = _environment.WebRootPath; ;
+        //    return wwwRootPath + @"images\recipes\"
+        //}
     }
 }
