@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +9,13 @@ using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
 using System.Collections.Generic;
 using System.Security.Claims;
+//using System.Web.Http;
 
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class FavouriteController : ControllerBase
     {
         private readonly RecipeContext _context;
@@ -70,18 +73,26 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> CreateFavourite(FavoriteWithRecipeInfoDTO favoriteDTO)
         {
             var userId = userManager.GetUserId(HttpContext.User);
-            User user = await _context.Users.FindAsync(userId);
+            User? user = await _context.Users.FindAsync(userId);
             Favourite favourite = new Favourite();
 
-            favourite.User = user;
-            if (ModelState.IsValid == true)
+            if(userId != null)
             {
-                _context.Favourites.Add(favourite);
-                await _context.SaveChangesAsync();
-                string url = Url.Link("GetOneFavourite", new { id = favoriteDTO.Id });
-                return Created(url, favoriteDTO);
+                favourite.User = user;
+                favourite.User.Id = userId;
+                favourite.RecipeId = favoriteDTO.RecipeId;
+
+                if (ModelState.IsValid == true)
+                {
+                    _context.Favourites.Add(favourite);
+                    await _context.SaveChangesAsync();
+                    string url = Url.Link("GetOneFavourite", new { id = favoriteDTO.Id });
+                    return Created(url, favoriteDTO);
+                }
+                return BadRequest(ModelState);
             }
-            return BadRequest(ModelState);
+            return NotFound("User info is not found");
+           
         }
 
 
