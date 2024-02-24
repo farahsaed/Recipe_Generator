@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
@@ -10,6 +11,7 @@ namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    //[Authorize(Roles = "Admin")]
     public class CategoryController : ControllerBase
     {
         private readonly RecipeContext _context;
@@ -28,6 +30,9 @@ namespace Recipe_Generator.Controllers
         {
             int itemsToSkip = (pageNumber - 1) * pageSize;
             List<Category> categoryList = await _context.Categories
+
+                .Skip(itemsToSkip)
+                .Take(pageSize)
                 .Include(r => r.Recipes)
                 .ToListAsync();
 
@@ -45,6 +50,10 @@ namespace Recipe_Generator.Controllers
             };
             if (pagedResult != null)
             {
+                //foreach(var item in categoryList)
+                //{
+                //    item.ImageUrl = "http://localhost:5115/" + item.ImageUrl;
+                //}
                 return Ok(pagedResult);
             }
             return NotFound("No categories has been found");
@@ -160,6 +169,7 @@ namespace Recipe_Generator.Controllers
             Category? oldCategory = await _context.Categories
                 .Include(r => r.Recipes)
                 .FirstOrDefaultAsync(c => c.Id == id);
+            
             if (ModelState.IsValid)
             {
                 string wwwRootPath = _environment.WebRootPath;
@@ -191,6 +201,10 @@ namespace Recipe_Generator.Controllers
                 }
                 if (oldCategory != null)
                 {
+                    if(categoryMapping.Id == 0)
+                    {
+                        categoryMapping.Id = id;
+                    }
                     _context.Entry(oldCategory).CurrentValues.SetValues(categoryMapping);
                     await _context.SaveChangesAsync();
                     return Ok(categoryMapping);

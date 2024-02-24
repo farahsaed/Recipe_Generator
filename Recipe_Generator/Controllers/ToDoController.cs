@@ -8,11 +8,13 @@ using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
 using System.Data;
 using System.Collections.Generic;
+using Microsoft.AspNetCore.Authorization;
 
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class ToDoController : ControllerBase
     {
         private readonly RecipeContext _db;
