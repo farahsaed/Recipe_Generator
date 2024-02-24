@@ -30,6 +30,10 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> GetAll()
         {
             var userId = userManager.GetUserId(HttpContext.User);
+            if(userId == null)
+            {
+                return BadRequest("Unauthorized user");
+            }
 
             var todo = await _db.ToDos
                 .Where(x => x.IsDeleted == false)
