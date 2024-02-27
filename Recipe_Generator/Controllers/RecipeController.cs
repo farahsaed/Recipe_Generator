@@ -55,11 +55,11 @@ namespace Recipe_Generator.Controllers
             };
             if(pagedResult != null)
             {
-                foreach (var item in pagedResult.Recipes)
-                {
-                    //string? url = Url.Link("AllRecipes", "");
-                    item.Image = "http://localhost:5115/" + item.Image;
-                }
+                //foreach (var item in pagedResult.Recipes)
+                //{
+                //    //string? url = Url.Link("AllRecipes", "");
+                //    item.Image = "http://localhost:5115/" + item.Image;
+                //}
                 return Ok(pagedResult);
 
             }
@@ -72,7 +72,7 @@ namespace Recipe_Generator.Controllers
         {
             try
             {
-                IQueryable<Recipe> query = _context.Recipes.Include(u => u.User);
+                IQueryable<Recipe> query = _context.Recipes.Include(u => u.User).Include(c => c.Category);
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
