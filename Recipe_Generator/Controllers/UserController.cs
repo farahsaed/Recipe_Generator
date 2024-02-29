@@ -16,6 +16,7 @@ using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
 using System.Text.Json;
+using static System.Net.Mime.MediaTypeNames;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Recipe_Generator.Controllers
@@ -56,6 +57,7 @@ namespace Recipe_Generator.Controllers
             user.Email = userDTO.Email;
             user.FirstName = userDTO.FirstName;
             user.LastName = userDTO.LastName;
+            user.ImagePath = "\\image\\ProfilePhotos\\00000000-0000-0000-0000-000000000000.png";
 
             await userManager.CreateAsync(user, userDTO.Password);
 
@@ -70,6 +72,7 @@ namespace Recipe_Generator.Controllers
                 
                 await emailSender.SendEmailGreeting(user.Email, user.FirstName);
             }
+
             if (result.Succeeded)
             {
                 return Ok("Account created successfully");
@@ -139,7 +142,7 @@ namespace Recipe_Generator.Controllers
             return Ok();
         }
 
-        [HttpPost("Upload image/{id}")]
+        [HttpPost("UploadImage/{id}")]
         public async Task<IActionResult> UploadImage(string id, IFormFile userImage)
         {
             var userId = userManager.GetUserId(HttpContext.User);
@@ -181,6 +184,42 @@ namespace Recipe_Generator.Controllers
 
             }
             return NotFound("Unauthorized user. You must login first");
+        }
+
+        [HttpPost("RemoveImage/{id}")]
+        public async Task<IActionResult> RemoveImage(string id)
+        {
+            var userid = userManager.GetUserId(HttpContext.User);
+            if(userid == null)
+            {
+                return BadRequest("Unauthorized user , Please log in first");
+            }
+            else
+            {
+                var user = await userManager.FindByIdAsync(userid);
+                if (user == null)
+                {
+                    return BadRequest("Unauthorized user");
+                }
+                else
+                {
+                   if(user.Id != id)
+                    {
+                        return BadRequest("Unauthorized user, you are not allowed");
+                    }
+                    else
+                    {
+                        var oldImage = Path.Combine(_environment.WebRootPath, user.ImagePath.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImage))
+                        {
+                            System.IO.File.Delete(oldImage);
+                        }
+                        user.ImagePath = @"images\ProfilePhotos\00000000-0000-0000-0000-000000000000.png";
+                        db.SaveChanges();
+                    }
+                }
+            }
+            return Ok();
         }
     }
 }
