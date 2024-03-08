@@ -8,6 +8,7 @@ namespace Recipe_Generator.DTO
         public string Name { get; set; }
         public IFormFile Image { get; set; }
         public string  Description { get; set;}
+        public RecipeState State { get; set; }
         public double Rating {  get; set; }
         public int TotalRating { get; set; }
         public string PrepareTime { get; set;}

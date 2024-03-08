@@ -20,7 +20,7 @@ namespace Recipe_Generator.Models
         public Category? Category { get; set; }
         public string? Nutrition { get; set; }
         public string? Timing { get; set; }
-
+        public RecipeState State { get; set; }
         public User User { get; set; }
         public double CalcAvgRating()
         {
