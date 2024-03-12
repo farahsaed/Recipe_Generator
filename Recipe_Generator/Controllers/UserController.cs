@@ -70,7 +70,7 @@ namespace Recipe_Generator.Controllers
             {
                 result = await userManager.AddToRoleAsync(user, "user");
                 
-                await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+               await emailSender.SendEmailGreeting(user.Email, user.FirstName);
             }
 
             if (result.Succeeded)

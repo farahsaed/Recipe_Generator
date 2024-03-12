@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
 using System.Collections.Generic;
@@ -19,16 +20,19 @@ namespace Recipe_Generator.Controllers
         private readonly UserManager<User> userManager;
         private readonly IConfiguration configuration;
         private readonly IWebHostEnvironment _environment;
+        private readonly RecipeContext db;
 
         public AdminController(
             UserManager<User> userManager, 
             IConfiguration configuration, 
-            IWebHostEnvironment environment
+            IWebHostEnvironment environment,
+            RecipeContext db
             )
         {
             this.userManager = userManager;
             this.configuration = configuration;
             _environment = environment;
+            this.db = db;
         }
 
         [HttpPost("CreateUser")]
@@ -41,26 +45,26 @@ namespace Recipe_Generator.Controllers
             user.LastName = userDTO.LastName;
 
             string wwwRootPath = _environment.WebRootPath;
-            if (userDTO.Image != null)
-            {
-                string fileName = Guid.NewGuid().ToString();
-                var filePath = Path.Combine(wwwRootPath, @"images\ProfilePhotos");
-                var extension = Path.GetExtension(userDTO.Image.FileName);
-                if (user.ImagePath != null)
-                {
-                    var oldImage = Path.Combine(wwwRootPath, user.ImagePath.TrimStart('\\'));
-                    if (System.IO.File.Exists(oldImage))
-                    {
-                        System.IO.File.Delete(oldImage);
-                    }
-                }
+            //if (userDTO.Image != null)
+            //{
+            //    string fileName = Guid.NewGuid().ToString();
+            //    var filePath = Path.Combine(wwwRootPath, @"images\ProfilePhotos");
+            //    var extension = Path.GetExtension(userDTO.Image.FileName);
+            //    if (user.ImagePath != null)
+            //    {
+            //        var oldImage = Path.Combine(wwwRootPath, user.ImagePath.TrimStart('\\'));
+            //        if (System.IO.File.Exists(oldImage))
+            //        {
+            //            System.IO.File.Delete(oldImage);
+            //        }
+            //    }
 
-                using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
-                {
-                    userDTO.Image.CopyTo(fileStream);
-                }
-                user.ImagePath = @"images\ProfilePhotos\" + fileName + extension;
-            }
+            //    using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
+            //    {
+            //        userDTO.Image.CopyTo(fileStream);
+            //    }
+            //    user.ImagePath = @"images\ProfilePhotos\" + fileName + extension;
+            //}
 
             await userManager.CreateAsync(user, userDTO.Password);
 
@@ -180,5 +184,45 @@ namespace Recipe_Generator.Controllers
                 return NotFound("User not found");
             }
         }
+
+        [HttpGet("PendingRecipes")]
+        public async Task<IActionResult> GEtPendingRecipes()
+        {
+            var recipes = db.Recipes
+                          .Where(r=> r.State == RecipeState.Pending)
+                          .Include(r=>r.User)
+                          .ToList();
+
+            return Ok(recipes);
+        }
+
+        [HttpPost("ApproveRecipe/{id}")]
+        public IActionResult ApproveRecipe(int id)
+        {
+            var recipe = db.Recipes.Find(id);
+            if(recipe != null)
+            {
+                recipe.State = RecipeState.Approved;
+                db.Update(recipe);
+                db.SaveChanges();
+                return Ok();
+            }
+            return BadRequest("Recipe not found");
+        }
+
+        [HttpPost("DeleteRecipe/{id}")]
+        public IActionResult DeleteRecipe(int id)
+        {
+            var recipe = db.Recipes.Find(id);
+            if (recipe != null)
+            {
+                recipe.State = RecipeState.Deleted;
+                db.Remove(recipe);
+                db.SaveChanges();
+                return Ok();
+            }
+            return BadRequest("Recipe not found");
+        }
+
     }
 }
