@@ -1,12 +1,7 @@
-﻿using Azure;
-using Microsoft.AspNetCore.Authentication;
+﻿using Microsoft.AspNetCore.Authentication;
 using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
-using Microsoft.AspNetCore.Http.HttpResults;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration.UserSecrets;
-using Microsoft.IdentityModel.JsonWebTokens;
 using Microsoft.IdentityModel.Tokens;
 using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
@@ -15,8 +10,6 @@ using Recipe_Generator.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Text.Json;
-using static System.Net.Mime.MediaTypeNames;
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Recipe_Generator.Controllers
@@ -62,15 +55,36 @@ namespace Recipe_Generator.Controllers
             await userManager.CreateAsync(user, userDTO.Password);
 
             IdentityResult result;
+            var roles = await userManager.GetUsersInRoleAsync("admin");
+
             if (user.Email.ToLower().Contains("admin") && user.UserName.ToLower().Contains("admin"))
             {
-                result = await userManager.AddToRoleAsync(user, "admin");
+                if(roles.Count > 1) 
+                {
+                    return Unauthorized("You can't be an admin");
+                }
+                else
+                {
+                    result = await userManager.AddToRoleAsync(user, "admin");
+                }
             }
             else
             {
                 result = await userManager.AddToRoleAsync(user, "user");
-                
-               await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+                bool IsValidEmail(string email)
+                {
+                    try
+                    {
+                        var mailAddress = new System.Net.Mail.MailAddress(user.Email);
+                        return true;
+                    }
+                    catch
+                    {
+                        return false;
+                    }
+                }
+
+                await emailSender.SendEmailGreeting(user.Email, user.FirstName);
             }
 
             if (result.Succeeded)
@@ -118,7 +132,7 @@ namespace Recipe_Generator.Controllers
                             issuer: configuration["JWT:IssuerValid"],
                             audience: configuration["JWT:AudianceValid"],
                             claims: claims,
-                            expires: DateTime.Now.AddHours(2),
+                            expires: DateTime.Now.AddHours(24),
                             signingCredentials: signingCredentials
                             );
 

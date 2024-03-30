@@ -68,7 +68,20 @@ namespace Recipe_Generator.Controllers
 
             await userManager.CreateAsync(user, userDTO.Password);
 
-            IdentityResult result = await userManager.AddToRoleAsync(user, "user");
+            IdentityResult result;
+            
+
+            if (user.UserName.ToLower().Contains("admin"))
+            {
+                result = await userManager.AddToRoleAsync(user, "admin");
+            }
+            else
+            {
+                result = await userManager.AddToRoleAsync(user, "user");
+
+                //await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+            }
+
             if (result.Succeeded)
             {
                 return Ok("Account created successfully");
@@ -186,7 +199,7 @@ namespace Recipe_Generator.Controllers
         }
 
         [HttpGet("PendingRecipes")]
-        public async Task<IActionResult> GEtPendingRecipes()
+        public async Task<IActionResult> GetPendingRecipes()
         {
             var recipes = db.Recipes
                           .Where(r=> r.State == RecipeState.Pending)

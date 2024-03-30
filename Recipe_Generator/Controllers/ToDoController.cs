@@ -43,15 +43,12 @@ namespace Recipe_Generator.Controllers
                 .OrderByDescending(x => x.CreatedDate)
             .ToListAsync();
 
-            var titles = (from t in todo select t.Title).ToList();
+            //var titles = (from t in todo select t.Title).ToList();
 
             if (todo.Count == 0)
                 return NotFound("Todo is empty");
-
-            if (titles == null)
-                return BadRequest("No todo was found");
            
-            return Ok(titles);
+            return Ok(todo);
         }
 
         [HttpGet("Item/id:Guid")]
