@@ -51,7 +51,7 @@ namespace Recipe_Generator.Controllers
             return Ok(todo);
         }
 
-        [HttpGet("Item/id:Guid")]
+        [HttpGet("Item/{id:Guid}")]
         public async Task<IActionResult> GetTodo(Guid id)
         {
             var todo = await _db.ToDos.FindAsync(id);
