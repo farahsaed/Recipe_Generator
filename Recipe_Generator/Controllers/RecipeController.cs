@@ -39,6 +39,7 @@ namespace Recipe_Generator.Controllers
                 .Take(pageSize)
                 .Include(c => c.Category)
                 .Include(u => u.User)
+                .Where(r => r.State == RecipeState.Approved || r.State == null)
                 .ToListAsync();
 
             int totalRecipesCount = await _context.Recipes.CountAsync();
@@ -129,6 +130,7 @@ namespace Recipe_Generator.Controllers
         {
             var userId = userManager.GetUserId(HttpContext.User);
             User? user = await _context.Users.FindAsync(userId);
+            var role = await userManager.GetRolesAsync(user);
             Recipe recipe = new Recipe();
 
             if (userId != null)
@@ -144,6 +146,14 @@ namespace Recipe_Generator.Controllers
                 recipe.PrepareTime = recipeDTO.PrepareTime;
                 recipe.Timing = recipeDTO.Timing;
                 recipe.TotalTime = recipeDTO.TotalTime;
+                if (role.Contains("User")) 
+                {
+                    recipe.State = RecipeState.Pending;
+                }
+                else
+                {
+                    recipe.State = RecipeState.Approved;
+                }
 
                 if (ModelState.IsValid)
                 {
@@ -178,7 +188,7 @@ namespace Recipe_Generator.Controllers
                 }
                 if (recipeDTO != null)
                 {
-                    // Create recipe
+                    
                     _context.Recipes.Add(recipe);
                     await _context.SaveChangesAsync();
                     string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
