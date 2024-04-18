@@ -19,7 +19,7 @@ namespace Recipe_Generator.Models
         public Category? Category { get; set; }
         public string? Nutrition { get; set; }
         public string? Timing { get; set; }
-
+        
         public User User { get; set; }
 
     }

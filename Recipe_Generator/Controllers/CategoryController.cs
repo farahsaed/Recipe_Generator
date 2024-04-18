@@ -14,10 +14,12 @@ namespace Recipe_Generator.Controllers
     {
         private readonly RecipeContext _context;
         private readonly IMapper _mapper;
-        public CategoryController(RecipeContext context, IMapper mapper)
+        private readonly IWebHostEnvironment _environment;
+        public CategoryController(RecipeContext context, IMapper mapper , IWebHostEnvironment environment)
         {
             _context = context;
             _mapper = mapper;
+            _environment = environment;
         }
 
 
@@ -63,22 +65,52 @@ namespace Recipe_Generator.Controllers
                
                 return Ok(category);
             }
-            else { return StatusCode(404); }
+            else { return NotFound(); }
         }
 
         [HttpPost("Create category")]
         public async Task<IActionResult> CreateCategory(CategoryWithRecipeListDTO category)
         {
             var categoryMapping = _mapper.Map<Category>(category);
-            if (ModelState.IsValid == true)
+            if (ModelState.IsValid)
             {
+                string wwwRootPath = _environment.WebRootPath;
+
+                if (category.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString();
+                    var uploads = Path.Combine(wwwRootPath, @"images\category");
+                    var extension = Path.GetExtension(category.Image.FileName);
+
+                    if (categoryMapping.ImagePath != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImagePath.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    using (
+                        var fileStream = new FileStream(
+                            Path.Combine(uploads, fileName + extension),
+                            FileMode.Create)
+                        )
+                    {
+                        category.Image.CopyTo(fileStream);
+                    }
+                    categoryMapping.ImagePath = @"images\category\" + fileName + extension;
+                }
                 _context.Categories.Add(categoryMapping);
                 await _context.SaveChangesAsync();
                 string url = Url.Link("GetOneCategory", new { id = category.Id });
                 return Created(url, category);
+                
             }
             return BadRequest(ModelState);
         }
+
+
         [HttpPut("Update category/{id}")]
         public async Task<IActionResult> UpdateCategory(CategoryWithRecipeListDTO category, int id)
         {
@@ -86,6 +118,41 @@ namespace Recipe_Generator.Controllers
             Category? oldCategory = await _context.Categories
                 .Include(r => r.Recipes)
                 .FirstOrDefaultAsync(c => c.Id == id);
+            if (ModelState.IsValid)
+            {
+                string wwwRootPath = _environment.WebRootPath;
+
+                if (category.Image != null)
+                {
+                    string fileName = Guid.NewGuid().ToString();
+                    var uploads = Path.Combine(wwwRootPath, @"images\category");
+                    var extension = Path.GetExtension(category.Image.FileName);
+
+                    if (categoryMapping.ImagePath != null)
+                    {
+                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImagePath.TrimStart('\\'));
+                        if (System.IO.File.Exists(oldImagePath))
+                        {
+                            System.IO.File.Delete(oldImagePath);
+                        }
+                    }
+
+                    using (
+                        var fileStream = new FileStream(
+                            Path.Combine(uploads, fileName + extension),
+                            FileMode.Create)
+                        )
+                    {
+                        category.Image.CopyTo(fileStream);
+                    }
+                    categoryMapping.ImagePath = @"images\category\" + fileName + extension;
+                }
+                _context.Categories.Add(categoryMapping);
+                await _context.SaveChangesAsync();
+                string url = Url.Link("GetOneCategory", new { id = category.Id });
+                return Created(url, category);
+
+            }
             if (oldCategory != null)
             {
                 if (ModelState.IsValid == true)

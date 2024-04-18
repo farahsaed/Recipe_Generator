@@ -1,5 +1,6 @@
 ﻿using AutoMapper;
 using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Recipe_Generator.Data;
@@ -16,22 +17,19 @@ namespace Recipe_Generator.Controllers
     {
         private readonly RecipeContext _context;
         private readonly IMapper _mapper;
-        public FavouriteController(RecipeContext context, IMapper mapper)
+        private readonly UserManager<User> userManager;
+        public FavouriteController(RecipeContext context, IMapper mapper, IWebHostEnvironment environment, UserManager<User> userManager)
         {
             _context = context;
             _mapper = mapper;
+            this.userManager = userManager;
         }
-
 
         [HttpGet("All Favourites")]
         public async Task<IActionResult> GetAllFavourites()
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if(userIdClaim == null)
-            {
-                return BadRequest("Unable to retrieve user info");
-            }
-            var userId = userIdClaim.Value;
+            var userId = userManager.GetUserId(HttpContext.User);
+           
             List<Favourite> favouriteList = await _context.Favourites
                 .Include(r => r.Recipe)
                 .Include(u => u.User)
@@ -63,17 +61,14 @@ namespace Recipe_Generator.Controllers
         [HttpPost("Create favourite")]
         public async Task<IActionResult> CreateFavourite(FavoriteWithRecipeInfoDTO favoriteDTO)
         {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return BadRequest("Unable to retrieve user info");
-            }
-            favoriteDTO.UserId = userIdClaim.Value;
-
-            var favouriteMapping = _mapper.Map<Favourite>(favoriteDTO);
+            var userId = userManager.GetUserId(HttpContext.User);
+            User user = await _context.Users.FindAsync(userId);
+            Favourite favourite = new Favourite();
+            
+            favourite.User = user;
             if (ModelState.IsValid == true)
             {
-                _context.Favourites.Add(favouriteMapping);
+                _context.Favourites.Add(favourite);
                 await _context.SaveChangesAsync();
                 string url = Url.Link("GetOneFavourite", new { id = favoriteDTO.Id });
                 return Created(url, favoriteDTO);
@@ -82,31 +77,7 @@ namespace Recipe_Generator.Controllers
         }
 
 
-        [HttpPut("Update favourite/{id:int}")]
-        public async Task<IActionResult> UpdateFavourite(FavoriteWithRecipeInfoDTO favouriteDTO, int id)
-        {
-            var userIdClaim = User.Claims.FirstOrDefault(c => c.Type == ClaimTypes.NameIdentifier);
-            if (userIdClaim == null)
-            {
-                return BadRequest("Unable to retrieve user info");
-            }
-            favouriteDTO.UserId = userIdClaim.Value;
-            var favouriteMapping = _mapper.Map<Favourite>(favouriteDTO);
-            Favourite? oldFavourite = await _context.Favourites
-                .Include(r => r.Recipe)
-                .FirstOrDefaultAsync(f => f.Id == id);
-            if (oldFavourite != null)
-            {
-                if (ModelState.IsValid == true)
-                {
-
-                    _context.Entry(oldFavourite).CurrentValues.SetValues(favouriteMapping);
-                    await _context.SaveChangesAsync();
-                    return Ok(favouriteMapping);
-                }
-            }
-            return BadRequest(ModelState);
-        }
+        
 
         [HttpDelete("Delete favourite/{id}")]
         public async Task<IActionResult> DeleteFavourite(int id)

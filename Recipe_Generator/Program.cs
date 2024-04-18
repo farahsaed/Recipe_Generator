@@ -1,8 +1,11 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Recipe_Generator.Data;
 using Recipe_Generator.Models;
+using System.Text;
 using System.Text.Encodings.Web;
 using System.Text.Unicode;
 
@@ -31,6 +34,27 @@ internal class Program
             .AddRoles<IdentityRole>()
             .AddEntityFrameworkStores<RecipeContext>();
 
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:AudianceValid"],
+                ValidIssuer = builder.Configuration["JWT:IssuerValid"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+            };
+
+        });
 
 
         var app = builder.Build();
@@ -42,6 +66,8 @@ internal class Program
             app.UseSwaggerUI();
         }
         app.UseStaticFiles();
+
+        app.UseAuthentication();
 
         app.UseAuthorization();
 
