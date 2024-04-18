@@ -1,4 +1,5 @@
 ﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -8,11 +9,13 @@ using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
 using System.Collections.Generic;
 using System.Security.Claims;
+//using System.Web.Http;
 
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class FavouriteController : ControllerBase
     {
         private readonly RecipeContext _context;
@@ -25,6 +28,7 @@ namespace Recipe_Generator.Controllers
             this.userManager = userManager;
         }
 
+<<<<<<< HEAD
         [HttpGet("All Favourites")]
         public async Task<IActionResult> GetAllFavourites()
         {
@@ -36,6 +40,27 @@ namespace Recipe_Generator.Controllers
                 .Where(r => r.User.Id.ToString() == userId)
                 .ToListAsync();
             return Ok(favouriteList);
+=======
+        [HttpGet("AllFavourites")]
+        public async Task<IActionResult> GetAllFavourites()
+        {
+            var userId = userManager.GetUserId(HttpContext.User);
+            if(userId != null)
+            {
+                List<Favourite> favouriteList = await _context.Favourites
+               .Include(r => r.Recipe)
+               .Include(u => u.User)
+               .Where(r => r.User.Id.ToString() == userId)
+               .ToListAsync();
+                if (favouriteList != null)
+                {
+                    return Ok(favouriteList);
+                }
+                return NotFound("You have not added recipes to your favourites yet");
+
+            }
+            return NotFound("Can not find user info");
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
         }
 
 
@@ -53,15 +78,16 @@ namespace Recipe_Generator.Controllers
             }
             else
             {
-                return StatusCode(404);
+                return NotFound("Recipe is not found");
             }
         }
 
 
-        [HttpPost("Create favourite")]
+        [HttpPost("CreateFavourite")]
         public async Task<IActionResult> CreateFavourite(FavoriteWithRecipeInfoDTO favoriteDTO)
         {
             var userId = userManager.GetUserId(HttpContext.User);
+<<<<<<< HEAD
             User user = await _context.Users.FindAsync(userId);
             Favourite favourite = new Favourite();
             
@@ -78,8 +104,34 @@ namespace Recipe_Generator.Controllers
 
 
         
+=======
+            User? user = await _context.Users.FindAsync(userId);
+            Favourite favourite = new Favourite();
 
-        [HttpDelete("Delete favourite/{id}")]
+            if(userId != null)
+            {
+                favourite.User = user;
+                favourite.User.Id = userId;
+                favourite.RecipeId = favoriteDTO.RecipeId;
+
+                if (ModelState.IsValid == true)
+                {
+                    _context.Favourites.Add(favourite);
+                    await _context.SaveChangesAsync();
+                    string url = Url.Link("GetOneFavourite", new { id = favoriteDTO.Id });
+                    return Created(url, favoriteDTO);
+                }
+                return BadRequest(ModelState);
+            }
+            return NotFound("User info is not found");
+           
+        }
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
+
+
+
+
+        [HttpDelete("DeleteFavourite/{id}")]
         public async Task<IActionResult> DeleteFavourite(int id)
         {
             Favourite? favouriteToDelete = await _context.Favourites

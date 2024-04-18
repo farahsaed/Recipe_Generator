@@ -8,10 +8,15 @@ using AutoMapper;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+<<<<<<< HEAD
+=======
+using Microsoft.AspNetCore.Authorization;
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    [AllowAnonymous]
     public class RecipeController : ControllerBase
     {
 
@@ -26,8 +31,8 @@ namespace Recipe_Generator.Controllers
             _environment = environment;
             this.userManager = userManager;
         }
-       
-        [HttpGet("All recipes")]
+
+        [HttpGet("AllRecipes")]
         public async Task<IActionResult> GetPagedRecipes(int pageNumber, int pageSize)
         {
             int itemsToSkip = (pageNumber - 1) * pageSize;
@@ -37,6 +42,7 @@ namespace Recipe_Generator.Controllers
                 .Take(pageSize)
                 .Include(c => c.Category)
                 .Include(u => u.User)
+                .Where(r => r.State == RecipeState.Approved || r.State == null)
                 .ToListAsync();
 
             int totalRecipesCount = await _context.Recipes.CountAsync();
@@ -51,25 +57,39 @@ namespace Recipe_Generator.Controllers
                 TotalItems = totalRecipesCount,
                 Recipes = recipesList
             };
+            if(pagedResult != null)
+            {
+                //foreach (var item in pagedResult.Recipes)
+                //{
+                //    //string? url = Url.Link("AllRecipes", "");
+                //    item.Image = "http://localhost:5115/" + item.Image;
+                //}
+                return Ok(pagedResult);
 
-            return Ok(pagedResult);
+            }
+            return NotFound("No recipes has been found"); 
+            
         }
 
-        [HttpGet("Queryed recipes")]
+        [HttpGet("QueryedRecipes")]
         public async Task<IActionResult> SearchforRecipes(string? searchTerm)
         {
             try
             {
-                IQueryable<Recipe> query = _context.Recipes.Include(c => c.Category).Include(u => u.User);
+                IQueryable<Recipe> query = _context.Recipes.Include(u => u.User).Include(c => c.Category);
 
                 if (!string.IsNullOrWhiteSpace(searchTerm))
                 {
                     searchTerm = searchTerm.Trim().ToLower();
-                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm));
+                    query = query.Where(r => r.Name.ToLower().Contains(searchTerm) || r.User.UserName.ToLower().Contains(searchTerm));
                 }
 
                 List<Recipe> recipesList = await query.ToListAsync();
-                return Ok(recipesList);
+                if (recipesList != null)
+                {
+                    return Ok(recipesList);
+                }
+                return NotFound("No recipes has been found");
             }
             catch (Exception ex)
             {
@@ -77,16 +97,15 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        
         [HttpGet("GetRecipeByID/{id:int}", Name = "GetOneRecipe")]
-
         public async Task<IActionResult> GetRecipe(int id)
         {
             RecipeWithCategoryNameDTO RecipeDTO = new RecipeWithCategoryNameDTO();
-            if (id != null || id != 0)
+            if (id != 0)
             {
                 Recipe? recipe = await _context.Recipes
                     .Include(c => c.Category)
+                    .Include(u => u.User)
                     .Where(r => r.Id == id)
                     .FirstOrDefaultAsync();
                 return Ok(recipe);
@@ -96,10 +115,11 @@ namespace Recipe_Generator.Controllers
                 return StatusCode(404);
             }
         }
-        [HttpGet("User recipes")]
+        [HttpGet("UserRecipes")]
         public async Task<IActionResult> GetMyRecipes()
         {
             var userId = userManager.GetUserId(HttpContext.User);
+<<<<<<< HEAD
             
             List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
             return Ok(userRecipes);
@@ -114,11 +134,35 @@ namespace Recipe_Generator.Controllers
 
             if (userId != null)           
             {
+=======
+
+            List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
+            if(userRecipes != null)
+            {
+                return Ok(userRecipes);
+            }
+            return NotFound("You have not created recipes yet");
+        }
+
+        [HttpPost("CreateRecipe")]
+        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
+        {
+            var userId = userManager.GetUserId(HttpContext.User);
+            User? user = await _context.Users.FindAsync(userId);
+            var role = await userManager.GetRolesAsync(user);
+            Recipe recipe = new Recipe();
+
+            if (userId != null)
+            {
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 recipe.User = user;
                 recipe.User.Id = userId;
                 recipe.CategoryId = recipeDTO.CategoryId;
                 recipe.CookTime = recipeDTO.CookTime;
+<<<<<<< HEAD
                 recipe.Description = recipeDTO.Description;
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 recipe.Directions = recipeDTO.Directions;
                 recipe.Ingredients = recipeDTO.Ingredients;
                 recipe.Name = recipeDTO.Name;
@@ -126,6 +170,7 @@ namespace Recipe_Generator.Controllers
                 recipe.PrepareTime = recipeDTO.PrepareTime;
                 recipe.Timing = recipeDTO.Timing;
                 recipe.TotalTime = recipeDTO.TotalTime;
+<<<<<<< HEAD
                
                 if (ModelState.IsValid)
                 {
@@ -161,9 +206,54 @@ namespace Recipe_Generator.Controllers
                 if (recipeDTO != null)
                 {
                     // Create recipe
+=======
+                if (role.Contains("User")) 
+                {
+                    recipe.State = RecipeState.Pending;
+                }
+                else
+                {
+                    recipe.State = RecipeState.Approved;
+                }
+
+                if (ModelState.IsValid)
+                {
+                    string wwwRootPath = _environment.WebRootPath;
+
+                    if (recipeDTO.Image != null)
+                    {
+                        string fileName = Guid.NewGuid().ToString();
+                        var uploads = Path.Combine(wwwRootPath, @"images\recipes");
+                        var extension = Path.GetExtension(recipeDTO.Image.FileName);
+
+                        if (recipe.Image != null)
+                        {
+                            var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+
+                        using (
+                            var fileStream = new FileStream(
+                                Path.Combine(uploads, fileName + extension),
+                                FileMode.Create)
+                            )
+                        {
+                            recipeDTO.Image.CopyTo(fileStream);
+                        }
+                        recipe.Image = @"images\recipes\" + fileName + extension;
+                    }
+
+                }
+                if (recipeDTO != null)
+                {
+                    
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                     _context.Recipes.Add(recipe);
                     await _context.SaveChangesAsync();
-                    string url = Url.Link("GetOneRecipe", new { id = recipe.Id });
+                    string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
                     return Created(url, recipe);
                 }
                 return BadRequest(ModelState);
@@ -172,18 +262,25 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("user id is not found");
             }
+<<<<<<< HEAD
             
+=======
+
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
         }
 
-
-
-        [HttpPut("Update Recipe/{id}")]
+        [HttpPut("UpdateRecipe/{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromForm] RecipeWithCategoryNameDTO recipe)
         {
             var userId = userManager.GetUserId(HttpContext.User);
             var recipeMapping = _mapper.Map<Recipe>(recipe);
+<<<<<<< HEAD
             
             Recipe oldRecipe = await _context.Recipes.Include(c=>c.Category).Where(u=>u.User.Id == userId).FirstOrDefaultAsync(r=>r.Id == id);
+=======
+
+            Recipe? oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
             if (ModelState.IsValid)
             {
@@ -218,6 +315,10 @@ namespace Recipe_Generator.Controllers
 
                 if (oldRecipe != null)
                 {
+                    if (recipeMapping.Id == 0)
+                    {
+                        recipeMapping.Id = id;
+                    }
                     //_context.Recipes.Update(recipeMapping);
                     _context.Entry(oldRecipe).CurrentValues.SetValues(recipeMapping);
                     await _context.SaveChangesAsync();
@@ -228,8 +329,36 @@ namespace Recipe_Generator.Controllers
             }
             return BadRequest(ModelState);
         }
+        [HttpPost("Rate/{id}")]
+        public IActionResult RateRecipe(int id, int ratingValue)
+        {
+            var userId = userManager.GetUserId(HttpContext.User);
+            var recipe = _context.Recipes.Include(r=>r.Ratings).FirstOrDefault(r => id == r.Id);
+            
+            User? user = _context.Users.Find(userId); 
+            if (recipe == null)
+            {               
+                return NotFound();
+            }
+            if(userId != null)
+            {
+                var rating = new Rating
+                {
+                    RecipeId = id,
+                    RatingValue = ratingValue,
+                    User = user
+                };
+                _context.Ratings.Add(rating);
+                _context.SaveChanges();
 
-        [HttpDelete("Delete recipe/{id:int}")]
+                recipe.Ratings.Add(rating);
+                recipe.AverageRating = recipe.CalcAvgRating();
+                _context.SaveChanges();
+                return Ok(rating);
+            }
+            return BadRequest("Unauthorized");
+        }
+        [HttpDelete("DeleteRecipe/{id:int}")]
         public async Task<IActionResult> DeleteRecipe(int id)
 
         {
@@ -251,5 +380,11 @@ namespace Recipe_Generator.Controllers
             }
             return NotFound();
         }
+        //[NonAction]
+        //public IActionResult GetImagePath()
+        //{
+        //    string wwwRootPath = _environment.WebRootPath; ;
+        //    return wwwRootPath + @"images\recipes\"
+        //}
     }
 }

@@ -155,6 +155,7 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+<<<<<<< HEAD
             modelBuilder.Entity("Recipe_Generator.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
@@ -179,6 +180,8 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("Admins", (string)null);
                 });
 
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -191,7 +194,15 @@ namespace Recipe_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+<<<<<<< HEAD
                     b.Property<string>("ImagePath")
+=======
+                    b.Property<string>("Description")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ImageUrl")
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -202,21 +213,30 @@ namespace Recipe_Generator.Migrations
 
             modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
                 {
-                    b.Property<int>("Id")
+                    b.Property<Guid>("Id")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
+                        .HasColumnType("uniqueidentifier");
 
-                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
 
                     b.Property<string>("UserId")
                         .IsRequired()
                         .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
 
                     b.HasIndex("UserId");
 
@@ -246,6 +266,32 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("Favourites", (string)null);
                 });
 
+            modelBuilder.Entity("Recipe_Generator.Models.Rating", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<double>("RatingValue")
+                        .HasColumnType("float");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("RecipeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Ratings");
+                });
+
             modelBuilder.Entity("Recipe_Generator.Models.Recipe", b =>
                 {
                     b.Property<int>("Id")
@@ -254,13 +300,13 @@ namespace Recipe_Generator.Migrations
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
 
+                    b.Property<double?>("AverageRating")
+                        .HasColumnType("float");
+
                     b.Property<int>("CategoryId")
                         .HasColumnType("int");
 
                     b.Property<string>("CookTime")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Description")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Directions")
@@ -281,6 +327,9 @@ namespace Recipe_Generator.Migrations
                     b.Property<string>("PrepareTime")
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<int>("State")
+                        .HasColumnType("int");
+
                     b.Property<string>("Timing")
                         .HasColumnType("nvarchar(max)");
 
@@ -299,6 +348,43 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("Recipes", (string)null);
                 });
 
+            modelBuilder.Entity("Recipe_Generator.Models.Reply", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<Guid>("CommentId")
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<DateTime>("CreatedOn")
+                        .HasColumnType("datetime2");
+
+                    b.Property<bool>("IsEdited")
+                        .HasColumnType("bit");
+
+                    b.Property<int>("RecipeId")
+                        .HasColumnType("int");
+
+                    b.Property<string>("Text")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("CommentId");
+
+                    b.HasIndex("RecipeId");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("Replies");
+                });
+
             modelBuilder.Entity("Recipe_Generator.Models.ToDo", b =>
                 {
                     b.Property<Guid>("Id")
@@ -315,18 +401,34 @@ namespace Recipe_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<string>("ImagePath")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<bool>("IsCompleted")
                         .HasColumnType("bit");
 
                     b.Property<bool>("IsDeleted")
                         .HasColumnType("bit");
 
+                    b.Property<string>("Title")
+                        .HasColumnType("nvarchar(max)");
+
                     b.Property<DateTime?>("UpdatedTime")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("UserId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.HasKey("Id");
 
+<<<<<<< HEAD
                     b.ToTable("ToDos", (string)null);
+=======
+                    b.HasIndex("UserId");
+
+                    b.ToTable("ToDos");
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>
@@ -458,11 +560,19 @@ namespace Recipe_Generator.Migrations
 
             modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
                 {
+                    b.HasOne("Recipe_Generator.Models.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
                     b.HasOne("Recipe_Generator.Models.User", "User")
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Recipe");
 
                     b.Navigation("User");
                 });
@@ -477,6 +587,23 @@ namespace Recipe_Generator.Migrations
 
                     b.HasOne("Recipe_Generator.Models.User", "User")
                         .WithMany("Favourites")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("Recipe");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Recipe_Generator.Models.Rating", b =>
+                {
+                    b.HasOne("Recipe_Generator.Models.Recipe", "Recipe")
+                        .WithMany("Ratings")
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Recipe_Generator.Models.User", "User")
+                        .WithMany()
                         .HasForeignKey("UserId");
 
                     b.Navigation("Recipe");
@@ -501,9 +628,57 @@ namespace Recipe_Generator.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Recipe_Generator.Models.Reply", b =>
+                {
+                    b.HasOne("Recipe_Generator.Models.Comment", "Comment")
+                        .WithMany("Replies")
+                        .HasForeignKey("CommentId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Recipe_Generator.Models.Recipe", "Recipe")
+                        .WithMany()
+                        .HasForeignKey("RecipeId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Recipe_Generator.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("Comment");
+
+                    b.Navigation("Recipe");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Recipe_Generator.Models.ToDo", b =>
+                {
+                    b.HasOne("Recipe_Generator.Models.User", "User")
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.Navigation("User");
+                });
+
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Navigation("Recipes");
+                });
+
+            modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
+                {
+                    b.Navigation("Replies");
+                });
+
+            modelBuilder.Entity("Recipe_Generator.Models.Recipe", b =>
+                {
+                    b.Navigation("Ratings");
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>

@@ -1,38 +1,41 @@
 ﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.IdentityModel.Tokens;
+using Microsoft.EntityFrameworkCore;
+using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Models;
-using System.IdentityModel.Tokens.Jwt;
-using System.Security.Claims;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reflection;
 using System.Text;
-
+using static System.Reflection.Metadata.BlobBuilder;
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
+    [Authorize(Roles = "Admin")]
     [ApiController]
     public class AdminController : ControllerBase
     {
         private readonly UserManager<User> userManager;
         private readonly IConfiguration configuration;
         private readonly IWebHostEnvironment _environment;
+        private readonly RecipeContext db;
 
         public AdminController(
             UserManager<User> userManager, 
             IConfiguration configuration, 
-            IWebHostEnvironment environment
+            IWebHostEnvironment environment,
+            RecipeContext db
             )
         {
             this.userManager = userManager;
             this.configuration = configuration;
             _environment = environment;
+            this.db = db;
         }
 
-        [HttpPost]
-        [Route("Register")]
-        [Route("Create User")]
+        [HttpPost("CreateUser")]
         public async Task<IActionResult> Register(UserDataDTO userDTO)
         {
             User user = new User();
@@ -42,30 +45,43 @@ namespace Recipe_Generator.Controllers
             user.LastName = userDTO.LastName;
 
             string wwwRootPath = _environment.WebRootPath;
-            if (userDTO.Image != null)
-            {
-                string fileName = Guid.NewGuid().ToString();
-                var filePath = Path.Combine(wwwRootPath, @"images\ProfilePhotos");
-                var extension = Path.GetExtension(userDTO.Image.FileName);
-                if (user.ImagePath != null)
-                {
-                    var oldImage = Path.Combine(wwwRootPath, user.ImagePath.TrimStart('\\'));
-                    if (System.IO.File.Exists(oldImage))
-                    {
-                        System.IO.File.Delete(oldImage);
-                    }
-                }
+            //if (userDTO.Image != null)
+            //{
+            //    string fileName = Guid.NewGuid().ToString();
+            //    var filePath = Path.Combine(wwwRootPath, @"images\ProfilePhotos");
+            //    var extension = Path.GetExtension(userDTO.Image.FileName);
+            //    if (user.ImagePath != null)
+            //    {
+            //        var oldImage = Path.Combine(wwwRootPath, user.ImagePath.TrimStart('\\'));
+            //        if (System.IO.File.Exists(oldImage))
+            //        {
+            //            System.IO.File.Delete(oldImage);
+            //        }
+            //    }
 
-                using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
-                {
-                    userDTO.Image.CopyTo(fileStream);
-                }
-                user.ImagePath = @"images\ProfilePhotos\" + fileName + extension;
-            }
+            //    using (var fileStream = new FileStream(Path.Combine(filePath, fileName + extension), FileMode.Create))
+            //    {
+            //        userDTO.Image.CopyTo(fileStream);
+            //    }
+            //    user.ImagePath = @"images\ProfilePhotos\" + fileName + extension;
+            //}
 
             await userManager.CreateAsync(user, userDTO.Password);
 
-            IdentityResult result = await userManager.AddToRoleAsync(user, "admin");
+            IdentityResult result;
+            
+
+            if (user.UserName.ToLower().Contains("admin"))
+            {
+                result = await userManager.AddToRoleAsync(user, "admin");
+            }
+            else
+            {
+                result = await userManager.AddToRoleAsync(user, "user");
+
+                //await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+            }
+
             if (result.Succeeded)
             {
                 return Ok("Account created successfully");
@@ -77,59 +93,7 @@ namespace Recipe_Generator.Controllers
             }
         }
 
-        [HttpPost("Login")]
-        public async Task<IActionResult> Login(LoginUserDTO userDTO)
-        {
-            if (ModelState.IsValid)
-            {
-                User user = await userManager.FindByNameAsync(userDTO.UserName);
-                if (user != null)
-                {
-                    bool foundPassword = await userManager.CheckPasswordAsync(user, userDTO.Password);
-                    if (foundPassword)
-                    {
-                        var claims = new List<Claim>();
-                        claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-                        claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id));
-                        claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-
-                        var roles = await userManager.GetRolesAsync(user);
-                        foreach (var role in roles)
-                        {
-                            claims.Add(new Claim(ClaimTypes.Role, role));
-
-                        }
-
-                        var securityKey = new SymmetricSecurityKey(
-                                Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
-                            );
-                        SigningCredentials signingCredentials = new SigningCredentials(
-                                securityKey, SecurityAlgorithms.HmacSha256
-                            );
-
-                        JwtSecurityToken validToken = new JwtSecurityToken(
-                            issuer: configuration["JWT:IssuerValid"],
-                            audience: configuration["JWT:AudianceValid"],
-                            claims: claims,
-                            expires: DateTime.Now.AddHours(2),
-                            signingCredentials: signingCredentials
-                            );
-
-                        return Ok(new
-                        {
-                            message = "Logged in successfully",
-                            token = new JwtSecurityTokenHandler().WriteToken(validToken),
-                            expires = validToken.ValidTo
-                        }
-                        );
-                    }
-                }
-            }
-            return Unauthorized("Invalid user name or password");
-        }
-
-        [HttpPost("Update User/{id}")]
-        [Authorize(Roles = ("Admin"))]
+        [HttpPost("UpdateUser/{id}")]
         public async Task<IActionResult> UpdateUser(UserDataDTO userData,string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -155,8 +119,7 @@ namespace Recipe_Generator.Controllers
             return NotFound("User not found");
         }
 
-        [HttpDelete("Delete User/{id}")]
-        [Authorize(Roles = ("Admin"))]
+        [HttpDelete("DeleteUser/{id}")]
         public async Task<IActionResult> DeleteUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -171,22 +134,57 @@ namespace Recipe_Generator.Controllers
             return NotFound("User not found");
         }
 
-        [HttpGet("All Users")]
-        [Authorize(Roles = ("Admin"))]
-        public IActionResult GetAllUsers()
+        [HttpGet("AllUsers")]
+        public async Task<IActionResult> GetAllUsers(int page, int limit)
         {
-            var usersList = userManager.Users.ToList();
-            if (usersList.Count > 0)
+            var users = userManager.Users;
+
+            var totalCount = await userManager.Users.CountAsync(); 
+
+            var totalPages = (int)Math.Ceiling(totalCount / (double)limit);
+
+            var pagedUsers = await users.Skip((page - 1) * limit).Take(limit).ToListAsync();
+
+            var pagedUser = new 
             {
-                return Ok(usersList);
+                Users = pagedUsers,
+                TotalCount = totalCount,
+                TotalPages = totalPages
+            };
+
+            if (pagedUser.TotalCount>0)
+            {
+                return Ok(pagedUser);
             }
 
             return NotFound("No user found");
 
         }
 
-        [HttpGet("{id}")]
-        [Authorize(Roles = ("Admin"))]
+        [HttpGet("SearchUser")]
+        public IActionResult GetSearchedUser(string? searchTerm)
+        {
+            IQueryable<User> users;
+            if (string.IsNullOrWhiteSpace(searchTerm))
+                users = userManager.Users;
+
+            else
+            {
+                searchTerm = searchTerm.Trim().ToLower();
+                users = userManager.Users
+                    .Where(u => u.UserName.ToLower().Contains(searchTerm)
+                        || u.Email.ToLower().Contains(searchTerm)
+                    );
+            }
+
+            if (users.Any())
+            {
+                return Ok(users.ToList());
+            }
+            return NotFound("No user matches " + searchTerm);
+        }
+
+        [HttpGet("GetUser/{id}")]
         public async Task<IActionResult> GetUser(string id)
         {
             User user = await userManager.FindByIdAsync(id);
@@ -199,5 +197,45 @@ namespace Recipe_Generator.Controllers
                 return NotFound("User not found");
             }
         }
+
+        [HttpGet("PendingRecipes")]
+        public async Task<IActionResult> GetPendingRecipes()
+        {
+            var recipes = db.Recipes
+                          .Where(r=> r.State == RecipeState.Pending)
+                          .Include(r=>r.User)
+                          .ToList();
+
+            return Ok(recipes);
+        }
+
+        [HttpPost("ApproveRecipe/{id}")]
+        public IActionResult ApproveRecipe(int id)
+        {
+            var recipe = db.Recipes.Find(id);
+            if(recipe != null)
+            {
+                recipe.State = RecipeState.Approved;
+                db.Update(recipe);
+                db.SaveChanges();
+                return Ok();
+            }
+            return BadRequest("Recipe not found");
+        }
+
+        [HttpPost("DeleteRecipe/{id}")]
+        public IActionResult DeleteRecipe(int id)
+        {
+            var recipe = db.Recipes.Find(id);
+            if (recipe != null)
+            {
+                recipe.State = RecipeState.Deleted;
+                db.Remove(recipe);
+                db.SaveChanges();
+                return Ok();
+            }
+            return BadRequest("Recipe not found");
+        }
+
     }
 }

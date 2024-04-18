@@ -13,9 +13,15 @@ namespace Recipe_Generator.Data
         public DbSet<Recipe> Recipes { get; set; }
         public DbSet<Favourite> Favourites { get; set; }
         public DbSet<User> Users { get; set; }
-        public DbSet<Admin> Admins { get; set; }
         public DbSet<Comment> Comments { get; set; }
+        public DbSet<Reply> Replies { get; set; }
         public DbSet<ToDo> ToDos { get; set; }
+<<<<<<< HEAD
        
+=======
+
+        public DbSet<Rating> Ratings { get; set; }
+
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
     }
 }

@@ -3,7 +3,13 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+<<<<<<< HEAD
+=======
+using Microsoft.OpenApi.Models;
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 using Recipe_Generator.Data;
+using Recipe_Generator.DTO;
+using Recipe_Generator.Interface;
 using Recipe_Generator.Models;
 using System.Text;
 using System.Text.Encodings.Web;
@@ -16,7 +22,20 @@ internal class Program
         var builder = WebApplication.CreateBuilder(args);
 
         // Add services to the container.
+        var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy(name: MyAllowSpecificOrigins,
+                policy =>
+                {
+                    policy.AllowAnyOrigin().AllowAnyHeader().AllowAnyMethod();
+                }
+                );
+        });
 
+        builder.Services.AddTransient<IEmailSender, EmailSender>();
+
+        //builder.Services.AddHttpClient("myClient", client => client.Timeout = TimeSpan.FromMinutes(5));
         builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
         builder.Services.AddEndpointsApiExplorer();
@@ -40,6 +59,24 @@ internal class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
+<<<<<<< HEAD
+
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:AudianceValid"],
+                ValidIssuer = builder.Configuration["JWT:IssuerValid"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+            };
+
+        });
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
         .AddJwtBearer(options =>
         {
@@ -56,7 +93,6 @@ internal class Program
 
         });
 
-
         var app = builder.Build();
 
         // Configure the HTTP request pipeline.
@@ -65,9 +101,14 @@ internal class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
+        
         app.UseStaticFiles();
 
+<<<<<<< HEAD
         app.UseAuthentication();
+=======
+        app.UseAuthentication(); 
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
         app.UseAuthorization();
 
@@ -85,6 +126,7 @@ internal class Program
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
+        app.UseCors(MyAllowSpecificOrigins);
 
         app.Run();
     }

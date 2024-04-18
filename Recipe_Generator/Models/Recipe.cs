@@ -6,7 +6,8 @@ namespace Recipe_Generator.Models
     {
         public int Id { get; set; }
         public string? Name { get; set; }
-        public string? Description { get; set; }
+        public double? AverageRating { get; set; } 
+        public ICollection<Rating> Ratings { get; set; }
         public string? PrepareTime { get; set; }
         public string? Image { get; set; }
         public string? CookTime { get; set; }
@@ -19,8 +20,20 @@ namespace Recipe_Generator.Models
         public Category? Category { get; set; }
         public string? Nutrition { get; set; }
         public string? Timing { get; set; }
+<<<<<<< HEAD
         
+=======
+        public RecipeState State { get; set; }
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
         public User User { get; set; }
+        public double CalcAvgRating()
+        {
+            if(Ratings == null || Ratings.Count == 0)
+            {
+                return 0;
+            }
+            return Ratings.Average(r => r.RatingValue);
+        } 
 
     }
 }
