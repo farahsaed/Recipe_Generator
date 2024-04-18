@@ -166,7 +166,8 @@ namespace Recipe_Generator.Controllers
             todo.UserId = userId;
             todo.DeletedDate = DateTime.Now;
             todo.IsDeleted = true;
-            todo.
+            todo.Title = todo.Title;
+            todo.Descriprtion = todo.Descriprtion;
             await _db.SaveChangesAsync();
             return Ok("Todo deleted successfully");
         }
