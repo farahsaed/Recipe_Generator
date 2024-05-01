@@ -1,4 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -24,6 +26,8 @@ namespace Recipe_Generator.Controllers
         private readonly IConfiguration configuration;
         private readonly IWebHostEnvironment _environment;
         private readonly IEmailSender emailSender;
+        private readonly SignInManager<User> signInManager;
+        private readonly ILogger<UserController> _logger;
         private readonly RecipeContext db;
 
         public UserController(
@@ -31,6 +35,8 @@ namespace Recipe_Generator.Controllers
             IConfiguration configuration,
             IWebHostEnvironment environment,
             IEmailSender emailSender,
+            SignInManager<User> signInManager,
+            ILogger<UserController> logger,
             RecipeContext db
             )
         {
@@ -38,6 +44,8 @@ namespace Recipe_Generator.Controllers
             this.configuration = configuration;
             _environment = environment;
             this.emailSender = emailSender;
+            this.signInManager = signInManager;
+            this._logger = logger;
             this.db = db;
         }
 
@@ -146,8 +154,58 @@ namespace Recipe_Generator.Controllers
                     }
                 }
             }
+
             return Unauthorized("Invalid user name or password");
         }
+
+        [HttpPost("SignInWithGoogle")]
+        public async Task<IActionResult> LoginWithGoogle()
+        {
+            var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
+            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+        }
+
+        [HttpGet("HandleGoogleResponse")]
+        public async Task<IActionResult> HandleGoogleResponse()
+        {
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external information");
+                return BadRequest("Couldn't get user info");
+            }
+
+            var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+                info.ProviderKey,isPersistent: false,bypassTwoFactor:true);
+            if(signInResutl.Succeeded)
+                return Ok(signInResutl);
+
+            else
+            {
+                var email  =info.Principal.FindFirstValue(ClaimTypes.Email);
+                if(email != null)
+                {
+
+                    var user = await userManager.FindByEmailAsync(email);
+                    if(user == null)
+                    {
+                        user = new User
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+                        };
+                        await userManager.CreateAsync(user);
+                    }
+                    await userManager.AddLoginAsync(user, info);
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return Ok(signInResutl);
+                }
+            }
+            return BadRequest();
+        }
+
 
         [HttpPost("Logout")]
         public async Task<IActionResult> Logout()
