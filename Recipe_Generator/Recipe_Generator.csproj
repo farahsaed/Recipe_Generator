@@ -24,7 +24,10 @@
 
   <ItemGroup>
     <Folder Include="wwwRoot\images\category\" />
+<<<<<<< HEAD
+=======
     <Folder Include="wwwRoot\images\TodoImages\" />
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
     <Folder Include="wwwRoot\images\recipes\" />
     <Folder Include="wwwRoot\images\ProfilePhotos\" />
   </ItemGroup>

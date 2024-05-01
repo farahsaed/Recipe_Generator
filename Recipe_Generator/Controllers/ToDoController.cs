@@ -154,7 +154,6 @@ namespace Recipe_Generator.Controllers
             await _db.SaveChangesAsync();
             return Ok(todo);
         }
-
         [HttpDelete("DeleteItem/{id:Guid}")]
         public async Task<IActionResult> DeleteToDo(Guid id)
         {
@@ -167,6 +166,8 @@ namespace Recipe_Generator.Controllers
             todo.UserId = userId;
             todo.DeletedDate = DateTime.Now;
             todo.IsDeleted = true;
+            todo.Title = todo.Title;
+            todo.Descriprtion = todo.Descriprtion;
             await _db.SaveChangesAsync();
             return Ok("Todo deleted successfully");
         }

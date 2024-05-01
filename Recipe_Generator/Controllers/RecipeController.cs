@@ -8,7 +8,10 @@ using AutoMapper;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
+<<<<<<< HEAD
+=======
 using Microsoft.AspNetCore.Authorization;
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
@@ -116,6 +119,22 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> GetMyRecipes()
         {
             var userId = userManager.GetUserId(HttpContext.User);
+<<<<<<< HEAD
+            
+            List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
+            return Ok(userRecipes);
+        }
+
+        [HttpPost("Create recipes")]
+        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
+        {
+            var userId = userManager.GetUserId(HttpContext.User);
+            User user = await _context.Users.FindAsync(userId);
+            Recipe recipe = new Recipe();
+
+            if (userId != null)           
+            {
+=======
 
             List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
             if(userRecipes != null)
@@ -135,10 +154,15 @@ namespace Recipe_Generator.Controllers
 
             if (userId != null)
             {
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 recipe.User = user;
                 recipe.User.Id = userId;
                 recipe.CategoryId = recipeDTO.CategoryId;
                 recipe.CookTime = recipeDTO.CookTime;
+<<<<<<< HEAD
+                recipe.Description = recipeDTO.Description;
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 recipe.Directions = recipeDTO.Directions;
                 recipe.Ingredients = recipeDTO.Ingredients;
                 recipe.Name = recipeDTO.Name;
@@ -146,6 +170,43 @@ namespace Recipe_Generator.Controllers
                 recipe.PrepareTime = recipeDTO.PrepareTime;
                 recipe.Timing = recipeDTO.Timing;
                 recipe.TotalTime = recipeDTO.TotalTime;
+<<<<<<< HEAD
+               
+                if (ModelState.IsValid)
+                {
+                    string wwwRootPath = _environment.WebRootPath;
+
+                    if (recipeDTO.Image != null)
+                    {
+                        string fileName = Guid.NewGuid().ToString();
+                        var uploads = Path.Combine(wwwRootPath, @"images\recipes");
+                        var extension = Path.GetExtension(recipeDTO.Image.FileName);
+
+                        if (recipe.Image != null)
+                        {
+                            var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                            if (System.IO.File.Exists(oldImagePath))
+                            {
+                                System.IO.File.Delete(oldImagePath);
+                            }
+                        }
+
+                        using (
+                            var fileStream = new FileStream(
+                                Path.Combine(uploads, fileName + extension),
+                                FileMode.Create)
+                            )
+                        {
+                            recipeDTO.Image.CopyTo(fileStream);
+                        }
+                        recipe.Image = @"images\recipes\" + fileName + extension;
+                    }
+
+                }
+                if (recipeDTO != null)
+                {
+                    // Create recipe
+=======
                 if (role.Contains("User")) 
                 {
                     recipe.State = RecipeState.Pending;
@@ -189,6 +250,7 @@ namespace Recipe_Generator.Controllers
                 if (recipeDTO != null)
                 {
                     
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                     _context.Recipes.Add(recipe);
                     await _context.SaveChangesAsync();
                     string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
@@ -200,7 +262,11 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("user id is not found");
             }
+<<<<<<< HEAD
+            
+=======
 
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
         }
 
         [HttpPut("UpdateRecipe/{id}")]
@@ -208,8 +274,13 @@ namespace Recipe_Generator.Controllers
         {
             var userId = userManager.GetUserId(HttpContext.User);
             var recipeMapping = _mapper.Map<Recipe>(recipe);
+<<<<<<< HEAD
+            
+            Recipe oldRecipe = await _context.Recipes.Include(c=>c.Category).Where(u=>u.User.Id == userId).FirstOrDefaultAsync(r=>r.Id == id);
+=======
 
             Recipe? oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
             if (ModelState.IsValid)
             {

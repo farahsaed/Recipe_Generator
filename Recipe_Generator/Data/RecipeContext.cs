@@ -1,4 +1,5 @@
 ﻿
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Recipe_Generator.Models;
@@ -15,8 +16,12 @@ namespace Recipe_Generator.Data
         public DbSet<Comment> Comments { get; set; }
         public DbSet<Reply> Replies { get; set; }
         public DbSet<ToDo> ToDos { get; set; }
+<<<<<<< HEAD
+       
+=======
 
         public DbSet<Rating> Ratings { get; set; }
 
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
     }
 }

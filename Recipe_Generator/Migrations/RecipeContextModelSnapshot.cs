@@ -155,6 +155,33 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
+<<<<<<< HEAD
+            modelBuilder.Entity("Recipe_Generator.Models.Admin", b =>
+                {
+                    b.Property<int>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("int");
+
+                    SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("Email")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Password")
+                        .HasColumnType("int");
+
+                    b.Property<string>("UserName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.ToTable("Admins", (string)null);
+                });
+
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -167,17 +194,21 @@ namespace Recipe_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+<<<<<<< HEAD
+                    b.Property<string>("ImagePath")
+=======
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("Id");
 
-                    b.ToTable("Categories");
+                    b.ToTable("Categories", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Comment", b =>
@@ -209,7 +240,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Comments");
+                    b.ToTable("Comments", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Favourite", b =>
@@ -232,7 +263,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Favourites");
+                    b.ToTable("Favourites", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Rating", b =>
@@ -314,7 +345,7 @@ namespace Recipe_Generator.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("Recipes");
+                    b.ToTable("Recipes", (string)null);
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.Reply", b =>
@@ -391,9 +422,13 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
+<<<<<<< HEAD
+                    b.ToTable("ToDos", (string)null);
+=======
                     b.HasIndex("UserId");
 
                     b.ToTable("ToDos");
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>

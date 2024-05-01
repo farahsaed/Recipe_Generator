@@ -6,7 +6,10 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.IdentityModel.Tokens;
+<<<<<<< HEAD
+=======
 using Microsoft.OpenApi.Models;
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Interface;
@@ -59,6 +62,24 @@ internal class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
+<<<<<<< HEAD
+
+        .AddJwtBearer(options =>
+        {
+            options.SaveToken = true;
+            options.RequireHttpsMetadata = false;
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidAudience = builder.Configuration["JWT:AudianceValid"],
+                ValidIssuer = builder.Configuration["JWT:IssuerValid"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
+            };
+
+        });
+=======
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
         .AddJwtBearer(options =>
         {
@@ -101,7 +122,11 @@ internal class Program
         
         app.UseStaticFiles();
 
+<<<<<<< HEAD
+        app.UseAuthentication();
+=======
         app.UseAuthentication(); 
+>>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
         app.UseAuthorization();
 
