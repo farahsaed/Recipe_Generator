@@ -134,9 +134,9 @@ namespace Recipe_Generator.Controllers
                     var uploads = Path.Combine(wwwRootPath, @"images\category");
                     var extension = Path.GetExtension(category.Image.FileName);
 
-                    if (categoryMapping.ImagePath != null)
+                    if (categoryMapping.ImageUrl != null)
                     {
-                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImagePath.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImageUrl.TrimStart('\\'));
 
                         if (System.IO.File.Exists(oldImagePath))
                         {
@@ -152,7 +152,7 @@ namespace Recipe_Generator.Controllers
                     {
                         category.Image.CopyTo(fileStream);
                     }
-                    categoryMapping.ImagePath = @"images\category\" + fileName + extension;
+                    categoryMapping.ImageUrl = @"images\category\" + fileName + extension;
 
                 }
                 _context.Categories.Add(categoryMapping);
@@ -181,9 +181,9 @@ namespace Recipe_Generator.Controllers
                     var uploads = Path.Combine(wwwRootPath, @"images\category");
                     var extension = Path.GetExtension(category.Image.FileName);
 
-                    if (categoryMapping.ImagePath != null)
+                    if (categoryMapping.ImageUrl != null)
                     {
-                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImagePath.TrimStart('\\'));
+                        var oldImagePath = Path.Combine(wwwRootPath, categoryMapping.ImageUrl.TrimStart('\\'));
                         if (System.IO.File.Exists(oldImagePath))
                         {
                             System.IO.File.Delete(oldImagePath);
@@ -198,7 +198,7 @@ namespace Recipe_Generator.Controllers
                     {
                         category.Image.CopyTo(fileStream);
                     }
-                    categoryMapping.ImagePath = @"images\category\" + fileName + extension;
+                    categoryMapping.ImageUrl = @"images\category\" + fileName + extension;
                 }
                 _context.Categories.Update(categoryMapping);
                 await _context.SaveChangesAsync();

@@ -27,6 +27,7 @@ namespace Recipe_Generator.Controllers
             this._db = db;
         }
 
+
         [HttpPost("AddComment/{rid}")]
         public async Task<IActionResult> CreateComment(CommentsDTO commentDTO,int rid)
         {
@@ -93,14 +94,19 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Recipe not found");
             }
-            var comment = _db.Comments.SingleOrDefault(c => c.Id == id);
+            var comment = _db.Comments.Where(c => c.RecipeId == rid).SingleOrDefault(c => c.Id == id);
+            
             if (comment != null)
             {
-                comment.Description = commentDTO.Comment;
-                comment.IsEdited = true;
-                _db.Comments.Update(comment);
-                _db.SaveChanges();
-                return Ok(comment);
+                if(comment.UserId == userId)
+                {
+                    comment.Description = commentDTO.Comment;
+                    comment.IsEdited = true;
+                    _db.Comments.Update(comment);
+                    _db.SaveChanges();
+                    return Ok(comment);
+                }
+                return Unauthorized("You can't edit this comment");
             }
             return BadRequest("comment not found");
         }
@@ -118,12 +124,16 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Unauthorized user");
             }
-            var comment = _db.Comments.SingleOrDefault(c => c.Id == id);
+            var comment = _db.Comments.Where(c => c.RecipeId== rid).SingleOrDefault(c => c.Id == id);
             if (comment != null)
             {
-                _db.Comments.Remove(comment);
-                _db.SaveChanges();
-                return Ok("Comment deleted successfully");
+                if(comment.UserId == userId)
+                {
+                    _db.Comments.Remove(comment);
+                    _db.SaveChanges();
+                    return Ok("Comment deleted successfully");
+                }
+                return Unauthorized("You can't delete this comment");
             }
             return BadRequest("comment not found");
         }

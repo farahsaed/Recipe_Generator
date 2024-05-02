@@ -26,6 +26,7 @@ namespace Recipe_Generator.Controllers
             this.emailSender = emailSender;
         }
 
+
         [HttpPost("reply/{cid}")]
         public async Task<IActionResult> AddReply(RepliesDTO repliesDTO, Guid cid)
         {
@@ -75,11 +76,11 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Comment doesn't exist");
             }
-            var userId = userManager.GetUserId(HttpContext.User);
-            if (userId == null)
-            {
-                return NotFound("Unauthorized user");
-            }
+            //var userId = userManager.GetUserId(HttpContext.User);
+            //if (userId == null)
+            //{
+            //    return NotFound("Unauthorized user");
+            //}
             var replies = db.Replies.ToList()
                 .Where(c => c.CommentId == comment.Id)
                 .OrderBy(r => r.CreatedOn);
@@ -99,16 +100,21 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Comment has been removed");
             }
-            var reply = db.Replies.SingleOrDefault(r => r.Id == rid);
+            var reply = db.Replies.Where(r => r.CommentId == cid).SingleOrDefault(r => r.Id == rid);
             if(reply == null)
             {
                 return NotFound("Comment not fount");
             }
-            reply.Text = repliesDTO.Reply;
-            reply.IsEdited = true;
-            db.Replies.Update(reply);
-            db.SaveChanges();
-            return Ok(reply);
+            if(reply.UserId == userId)
+            {
+                reply.Text = repliesDTO.Reply;
+                reply.IsEdited = true;
+                db.Replies.Update(reply);
+                db.SaveChanges();
+                return Ok(reply);
+            }
+            return Unauthorized("You can't edit this reply");
+            
         }
 
         [HttpDelete("DeleteComment/{rid}/{cid}")]
@@ -124,14 +130,18 @@ namespace Recipe_Generator.Controllers
             {
                 return NotFound("Comment has been removed");
             }
-            var reply = db.Replies.SingleOrDefault(l => l.Id == rid);
+            var reply = db.Replies.Where(r=>r.CommentId == cid).SingleOrDefault(l => l.Id == rid);
             if( reply == null)
             {
                 return NotFound("Reply not found");
             }
-            db.Replies.Remove(reply);
-            db.SaveChanges();
-            return Ok("Reply delted successfully");
+            if(reply.UserId == userId)
+            {
+                db.Replies.Remove(reply);
+                db.SaveChanges();
+                return Ok("Reply delted successfully");
+            }
+            return Unauthorized("You cant delete this reply");
         }
     }
 }
