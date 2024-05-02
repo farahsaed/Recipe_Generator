@@ -8,10 +8,7 @@ using AutoMapper;
 using System.IO;
 using System.Security.Claims;
 using Microsoft.AspNetCore.Identity;
-<<<<<<< HEAD
-=======
 using Microsoft.AspNetCore.Authorization;
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 namespace Recipe_Generator.Controllers
 {
     [Route("api/[controller]")]
@@ -118,31 +115,16 @@ namespace Recipe_Generator.Controllers
         [HttpGet("UserRecipes")]
         public async Task<IActionResult> GetMyRecipes()
         {
-            var userId = userManager.GetUserId(HttpContext.User);
-<<<<<<< HEAD
-            
+            var userId = userManager.GetUserId(HttpContext.User);            
             List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
-            return Ok(userRecipes);
-        }
-
-        [HttpPost("Create recipes")]
-        public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
-        {
-            var userId = userManager.GetUserId(HttpContext.User);
-            User user = await _context.Users.FindAsync(userId);
-            Recipe recipe = new Recipe();
-
-            if (userId != null)           
-            {
-=======
-
-            List<Recipe> userRecipes = await _context.Recipes.Include(c => c.Category).Where(r => r.User.Id == userId).ToListAsync();
-            if(userRecipes != null)
+            if(userRecipes.Any()) 
             {
                 return Ok(userRecipes);
             }
             return NotFound("You have not created recipes yet");
         }
+
+
 
         [HttpPost("CreateRecipe")]
         public async Task<IActionResult> CreateRecipe([FromForm] RecipeWithCategoryNameDTO recipeDTO)
@@ -154,133 +136,81 @@ namespace Recipe_Generator.Controllers
 
             if (userId != null)
             {
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
-                recipe.User = user;
-                recipe.User.Id = userId;
-                recipe.CategoryId = recipeDTO.CategoryId;
-                recipe.CookTime = recipeDTO.CookTime;
-<<<<<<< HEAD
-                recipe.Description = recipeDTO.Description;
-=======
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
-                recipe.Directions = recipeDTO.Directions;
-                recipe.Ingredients = recipeDTO.Ingredients;
-                recipe.Name = recipeDTO.Name;
-                recipe.Nutrition = recipeDTO.Nutrition;
-                recipe.PrepareTime = recipeDTO.PrepareTime;
-                recipe.Timing = recipeDTO.Timing;
-                recipe.TotalTime = recipeDTO.TotalTime;
-<<<<<<< HEAD
-               
                 if (ModelState.IsValid)
                 {
-                    string wwwRootPath = _environment.WebRootPath;
+                    recipe.User = user;
+                    recipe.User.Id = userId;
+                    recipe.CategoryId = recipeDTO.CategoryId;
+                    recipe.CookTime = recipeDTO.CookTime;
+                    recipe.Directions = recipeDTO.Directions;
+                    recipe.Ingredients = recipeDTO.Ingredients;
+                    recipe.Name = recipeDTO.Name;
+                    recipe.Nutrition = recipeDTO.Nutrition;
+                    recipe.PrepareTime = recipeDTO.PrepareTime;
+                    recipe.Timing = recipeDTO.Timing;
+                    recipe.TotalTime = recipeDTO.TotalTime;
 
-                    if (recipeDTO.Image != null)
+                    if (role.Contains("User"))
                     {
-                        string fileName = Guid.NewGuid().ToString();
-                        var uploads = Path.Combine(wwwRootPath, @"images\recipes");
-                        var extension = Path.GetExtension(recipeDTO.Image.FileName);
-
-                        if (recipe.Image != null)
-                        {
-                            var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-
-                        using (
-                            var fileStream = new FileStream(
-                                Path.Combine(uploads, fileName + extension),
-                                FileMode.Create)
-                            )
-                        {
-                            recipeDTO.Image.CopyTo(fileStream);
-                        }
-                        recipe.Image = @"images\recipes\" + fileName + extension;
+                        recipe.State = RecipeState.Pending;
+                    }
+                    else
+                    {
+                        recipe.State = RecipeState.Approved;
                     }
 
-                }
-                if (recipeDTO != null)
-                {
-                    // Create recipe
-=======
-                if (role.Contains("User")) 
-                {
-                    recipe.State = RecipeState.Pending;
+                        string wwwRootPath = _environment.WebRootPath;
+
+                        if (recipeDTO.Image != null)
+                        {
+                            string fileName = Guid.NewGuid().ToString();
+                            var uploads = Path.Combine(wwwRootPath, @"images\recipes");
+                            var extension = Path.GetExtension(recipeDTO.Image.FileName);
+
+                            if (recipe.Image != null)
+                            {
+                                var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
+                                if (System.IO.File.Exists(oldImagePath))
+                                {
+                                    System.IO.File.Delete(oldImagePath);
+                                }
+                            }
+
+                            using (
+                                var fileStream = new FileStream(
+                                    Path.Combine(uploads, fileName + extension),
+                                    FileMode.Create)
+                                )
+                            {
+                                recipeDTO.Image.CopyTo(fileStream);
+                            }
+                            recipe.Image = @"images\recipes\" + fileName + extension;
+                        }
+
+                    }
+                    if (recipeDTO != null)
+                    {
+                        _context.Recipes.Add(recipe);
+                        await _context.SaveChangesAsync();
+                        string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
+                        return Created(url, recipe);
+                    }
+                    return BadRequest(ModelState);
                 }
                 else
                 {
-                    recipe.State = RecipeState.Approved;
+                    return NotFound("user id is not found");
                 }
 
-                if (ModelState.IsValid)
-                {
-                    string wwwRootPath = _environment.WebRootPath;
-
-                    if (recipeDTO.Image != null)
-                    {
-                        string fileName = Guid.NewGuid().ToString();
-                        var uploads = Path.Combine(wwwRootPath, @"images\recipes");
-                        var extension = Path.GetExtension(recipeDTO.Image.FileName);
-
-                        if (recipe.Image != null)
-                        {
-                            var oldImagePath = Path.Combine(wwwRootPath, recipe.Image.TrimStart('\\'));
-                            if (System.IO.File.Exists(oldImagePath))
-                            {
-                                System.IO.File.Delete(oldImagePath);
-                            }
-                        }
-
-                        using (
-                            var fileStream = new FileStream(
-                                Path.Combine(uploads, fileName + extension),
-                                FileMode.Create)
-                            )
-                        {
-                            recipeDTO.Image.CopyTo(fileStream);
-                        }
-                        recipe.Image = @"images\recipes\" + fileName + extension;
-                    }
-
-                }
-                if (recipeDTO != null)
-                {
-                    
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
-                    _context.Recipes.Add(recipe);
-                    await _context.SaveChangesAsync();
-                    string? url = Url.Link("GetOneRecipe", new { id = recipe.Id });
-                    return Created(url, recipe);
-                }
-                return BadRequest(ModelState);
             }
-            else
-            {
-                return NotFound("user id is not found");
-            }
-<<<<<<< HEAD
-            
-=======
-
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
-        }
+        
 
         [HttpPut("UpdateRecipe/{id}")]
         public async Task<IActionResult> UpdateRecipe(int id, [FromForm] RecipeWithCategoryNameDTO recipe)
         {
             var userId = userManager.GetUserId(HttpContext.User);
             var recipeMapping = _mapper.Map<Recipe>(recipe);
-<<<<<<< HEAD
-            
-            Recipe oldRecipe = await _context.Recipes.Include(c=>c.Category).Where(u=>u.User.Id == userId).FirstOrDefaultAsync(r=>r.Id == id);
-=======
-
             Recipe? oldRecipe = await _context.Recipes.Include(c => c.Category).Where(u => u.User.Id == userId).FirstOrDefaultAsync(r => r.Id == id);
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
 
             if (ModelState.IsValid)
             {
@@ -380,11 +310,6 @@ namespace Recipe_Generator.Controllers
             }
             return NotFound();
         }
-        //[NonAction]
-        //public IActionResult GetImagePath()
-        //{
-        //    string wwwRootPath = _environment.WebRootPath; ;
-        //    return wwwRootPath + @"images\recipes\"
-        //}
+     
     }
 }
