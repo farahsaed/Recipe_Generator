@@ -76,15 +76,7 @@ internal class Program
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(builder.Configuration["JWT:SecretKey"]))
             };
 
-        });
-
-        builder.Services.AddAuthentication(options =>
-        {
-            options.DefaultAuthenticateScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultSignInScheme = CookieAuthenticationDefaults.AuthenticationScheme;
-            options.DefaultChallengeScheme = GoogleDefaults.AuthenticationScheme;
         })
-            .AddCookie()
             .AddGoogle(options =>
             {
                 var googleAuth = builder.Configuration.GetSection("ExternalAuth:Google");
