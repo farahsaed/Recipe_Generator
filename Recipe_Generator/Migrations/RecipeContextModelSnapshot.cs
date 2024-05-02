@@ -155,7 +155,7 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("AspNetUserTokens", (string)null);
                 });
 
-<<<<<<< HEAD
+
             modelBuilder.Entity("Recipe_Generator.Models.Admin", b =>
                 {
                     b.Property<int>("Id")
@@ -180,8 +180,7 @@ namespace Recipe_Generator.Migrations
                     b.ToTable("Admins", (string)null);
                 });
 
-=======
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
+
             modelBuilder.Entity("Recipe_Generator.Models.Category", b =>
                 {
                     b.Property<int>("Id")
@@ -194,15 +193,14 @@ namespace Recipe_Generator.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-<<<<<<< HEAD
-                    b.Property<string>("ImagePath")
-=======
+
+                    b.Property<string>("ImagePath");
+
                     b.Property<string>("Description")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("ImageUrl")
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
@@ -422,13 +420,12 @@ namespace Recipe_Generator.Migrations
 
                     b.HasKey("Id");
 
-<<<<<<< HEAD
+
                     b.ToTable("ToDos", (string)null);
-=======
+
                     b.HasIndex("UserId");
 
                     b.ToTable("ToDos");
->>>>>>> acc659a2ce75d75f3b4232fbe99493481d1554c3
                 });
 
             modelBuilder.Entity("Recipe_Generator.Models.User", b =>
