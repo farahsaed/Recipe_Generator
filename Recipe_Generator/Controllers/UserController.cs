@@ -29,6 +29,7 @@ namespace Recipe_Generator.Controllers
         private readonly SignInManager<User> signInManager;
         private readonly ILogger<UserController> _logger;
         private readonly RecipeContext db;
+        private readonly JwtHandler jwtHandler;
 
         public UserController(
             UserManager<User> userManager,
@@ -158,55 +159,125 @@ namespace Recipe_Generator.Controllers
             return Unauthorized("Invalid user name or password");
         }
 
-        [HttpPost("SignInWithGoogle")]
-        public async Task<IActionResult> LoginWithGoogle()
+        [HttpPost("signin-google")]
+        public async Task<IActionResult> HandleGoogleResponse([FromBody] ExternalAuthDTO externalAuthDTO)
         {
-            //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
-            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
-            return new ChallengeResult("Google",properties);
-        }
+            var payload = await jwtHandler.VerifyGoogleToken(externalAuthDTO);
+            if (payload == null)
+                return BadRequest("Invalid auth");
 
-        [HttpGet("signin-google")]
-        [Authorize]
-        public async Task<IActionResult> HandleGoogleResponse()
-        {
-            var info = await signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
+            var info = new UserLoginInfo(externalAuthDTO.Povider, payload.Subject, externalAuthDTO.Povider);
+
+            var user = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+            if(user == null)
             {
-                ModelState.AddModelError(string.Empty, "Error loading external information");
-                return BadRequest("Couldn't get user info");
-            }
-
-            var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-                info.ProviderKey,isPersistent: false,bypassTwoFactor:true);
-            if(signInResutl.Succeeded)
-                return Ok(signInResutl);
-
-            else
-            {
-                var email  =info.Principal.FindFirstValue(ClaimTypes.Email);
-                if(email != null)
+                user = await userManager.FindByEmailAsync(payload.Email);
+                if(user == null)
                 {
-
-                    var user = await userManager.FindByEmailAsync(email);
-                    if(user == null)
+                    user = new User
                     {
-                        user = new User
-                        {
-                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-                            Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
-                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
-                        };
-                        await userManager.CreateAsync(user);
-                    }
+                        Email = payload.Email,
+                        UserName = payload.Email,
+                        FirstName = payload.Name,
+                        LastName = payload.FamilyName
+                    };
+                    await userManager.CreateAsync(user);
+
+                    await userManager.AddToRoleAsync(user, "User");
                     await userManager.AddLoginAsync(user, info);
-                    await signInManager.SignInAsync(user, isPersistent: false);
-                    return Ok(signInResutl);
+                }
+                else
+                {
+                    await userManager.AddLoginAsync(user, info);
                 }
             }
-            return BadRequest();
-        }
+            if (user == null)
+                return BadRequest("Invalid authentication");
+
+            var claims = new List<Claim>();
+            claims.Add(new Claim(ClaimTypes.Name, user.UserName));
+            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+
+            var roles = await userManager.GetRolesAsync(user);
+            foreach (var role in roles)
+            {
+                claims.Add(new Claim(ClaimTypes.Role, role));
+
+            }
+
+            var securityKey = new SymmetricSecurityKey(
+                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
+                );
+            SigningCredentials signingCredentials = new SigningCredentials(
+                    securityKey, SecurityAlgorithms.HmacSha256
+                );
+
+            JwtSecurityToken validToken = new JwtSecurityToken(
+                issuer: configuration["JWT:IssuerValid"],
+                audience: configuration["JWT:AudianceValid"],
+                claims: claims,
+                expires: DateTime.Now.AddHours(24),
+                signingCredentials: signingCredentials
+                );
+            return Ok(new
+            {
+                message = "Logged in successfully using google",
+                token = new JwtSecurityTokenHandler().WriteToken(validToken),
+                expires = validToken.ValidTo
+            });
+;       }
+
+
+        //[HttpPost("SignInWithGoogle")]
+        //public async Task<IActionResult> LoginWithGoogle()
+        //{
+        //    //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
+        //    var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
+        //    return new ChallengeResult("Google", properties);
+        //}
+
+        //[HttpGet("signin-google")]
+        //[Authorize]
+        //public async Task<IActionResult> HandleGoogleResponse()
+        //{
+        //    var info = await signInManager.GetExternalLoginInfoAsync();
+        //    if (info == null)
+        //    {
+        //        ModelState.AddModelError(string.Empty, "Error loading external information");
+        //        return BadRequest("Couldn't get user info");
+        //    }
+
+        //    var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+        //        info.ProviderKey,isPersistent: false,bypassTwoFactor:true);
+        //    if(signInResutl.Succeeded)
+        //        return Ok(signInResutl);
+
+        //    else
+        //    {
+        //        var email  =info.Principal.FindFirstValue(ClaimTypes.Email);
+        //        if(email != null)
+        //        {
+
+        //            var user = await userManager.FindByEmailAsync(email);
+        //            if(user == null)
+        //            {
+        //                user = new User
+        //                {
+        //                    UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+        //                    Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+        //                    FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+        //                    LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+        //                };
+        //                await userManager.CreateAsync(user);
+        //            }
+        //            await userManager.AddLoginAsync(user, info);
+        //            await signInManager.SignInAsync(user, isPersistent: false);
+        //            return Ok(signInResutl);
+        //        }
+        //    }
+        //    return BadRequest();
+        //}
 
 
         [HttpPost("Logout")]
