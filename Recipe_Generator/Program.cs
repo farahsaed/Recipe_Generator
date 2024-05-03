@@ -96,6 +96,8 @@ internal class Program
         
         app.UseStaticFiles();
 
+        app.UseCors(MyAllowSpecificOrigins);
+
         app.UseAuthentication();
         app.UseAuthentication(); 
 
@@ -115,7 +117,7 @@ internal class Program
                     await roleManager.CreateAsync(new IdentityRole(role));
             }
         }
-        app.UseCors(MyAllowSpecificOrigins);
+       
 
         app.Run();
     }
