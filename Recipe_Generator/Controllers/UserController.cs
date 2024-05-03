@@ -161,11 +161,13 @@ namespace Recipe_Generator.Controllers
         [HttpPost("SignInWithGoogle")]
         public async Task<IActionResult> LoginWithGoogle()
         {
-            var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
-            return Challenge(properties, GoogleDefaults.AuthenticationScheme);
+            //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
+            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
+            return new ChallengeResult("Google",properties);
         }
 
-        [HttpGet("HandleGoogleResponse")]
+        [HttpGet("signin-google")]
+        [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
             var info = await signInManager.GetExternalLoginInfoAsync();
