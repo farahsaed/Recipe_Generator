@@ -38,6 +38,7 @@ namespace Recipe_Generator.Controllers
             IEmailSender emailSender,
             SignInManager<User> signInManager,
             ILogger<UserController> logger,
+            JwtHandler jwtHandler,
             RecipeContext db
             )
         {
@@ -47,6 +48,7 @@ namespace Recipe_Generator.Controllers
             this.emailSender = emailSender;
             this.signInManager = signInManager;
             this._logger = logger;
+            this.jwtHandler = jwtHandler;
             this.db = db;
         }
 
