@@ -83,7 +83,7 @@ internal class Program
                 var googleAuth = builder.Configuration.GetSection("ExternalAuth:Google");
                 options.ClientId = googleAuth["ClientID"];
                 options.ClientSecret = googleAuth["ClientSecret"];
-                options.SignInScheme = IdentityConstants.ExternalScheme;
+                options.CallbackPath = googleAuth["CallBackPath"];
             });
 
         var app = builder.Build();
@@ -100,7 +100,6 @@ internal class Program
         app.UseCors(MyAllowSpecificOrigins);
 
         app.UseAuthentication();
-        app.UseAuthentication(); 
 
         app.UseAuthorization();
 
