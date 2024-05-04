@@ -37,7 +37,7 @@ internal class Program
 
         builder.Services.AddTransient<IEmailSender, EmailSender>();
         builder.Services.AddScoped<JwtHandler>();
-
+           
         //builder.Services.AddHttpClient("myClient", client => client.Timeout = TimeSpan.FromMinutes(5));
         builder.Services.AddControllers().AddNewtonsoftJson(options => { options.SerializerSettings.ReferenceLoopHandling = Newtonsoft.Json.ReferenceLoopHandling.Ignore; });
         // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
@@ -94,9 +94,14 @@ internal class Program
             app.UseSwagger();
             app.UseSwaggerUI();
         }
-        
+        //else
+        //{
+        //    app.UseHsts();
+        //}
+        app.UseHttpsRedirection();
         app.UseStaticFiles();
 
+        
         app.UseCors(MyAllowSpecificOrigins);
 
         app.UseAuthentication();
