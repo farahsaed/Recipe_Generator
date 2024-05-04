@@ -168,7 +168,7 @@ namespace Recipe_Generator.Controllers
             if (payload == null)
                 return BadRequest("Invalid auth");
 
-            var info = new UserLoginInfo(externalAuthDTO.Povider, payload.Subject, externalAuthDTO.Povider);
+            var info = new UserLoginInfo(externalAuthDTO.Provider, payload.Subject, externalAuthDTO.Provider);
 
             var user = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
             if(user == null)
