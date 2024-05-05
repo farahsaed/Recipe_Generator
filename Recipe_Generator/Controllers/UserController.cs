@@ -2,6 +2,8 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
+//using Microsoft.AspNetCore.Cors;
+using System.Web.Http.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
@@ -12,6 +14,7 @@ using Recipe_Generator.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
 namespace Recipe_Generator.Controllers
@@ -19,7 +22,7 @@ namespace Recipe_Generator.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
-
+    [EnableCors(origins:"*" , headers:"*" ,methods:"*")]
     public class UserController : ControllerBase
     {
         private readonly UserManager<User> userManager;
