@@ -62,8 +62,6 @@ internal class Program
             options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
             options.DefaultScheme = JwtBearerDefaults.AuthenticationScheme;
         })
-
-
         .AddJwtBearer(options =>
         {
             options.SaveToken = true;
@@ -78,12 +76,16 @@ internal class Program
             };
 
         })
-            .AddGoogle(options =>
-            {
-                var googleAuth = builder.Configuration.GetSection("ExternalAuth:Google");
-                options.ClientId = googleAuth["ClientID"];
-                options.ClientSecret = googleAuth["ClientSecret"];
-            });
+        .AddGoogle(options =>
+        {
+            var googleAuth = builder.Configuration.GetSection("ExternalAuth:Google");
+            options.ClientId = googleAuth["ClientID"];
+            options.ClientSecret = googleAuth["ClientSecret"];
+        })
+        .AddCookie(options =>
+        {
+            options.Cookie.Name = "RecipeCookie";
+        });
 
         var app = builder.Build();
 
