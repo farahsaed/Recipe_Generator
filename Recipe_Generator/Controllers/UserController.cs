@@ -161,125 +161,125 @@ namespace Recipe_Generator.Controllers
             return Unauthorized("Invalid user name or password");
         }
 
-        [HttpPost("signin-google")]
-        public async Task<IActionResult> HandleGoogleResponse([FromBody] ExternalAuthDTO externalAuthDTO)
+//        [HttpPost("signin-google")]
+//        public async Task<IActionResult> HandleGoogleResponse([FromBody] ExternalAuthDTO externalAuthDTO)
+//        {
+//            var payload = await jwtHandler.VerifyGoogleToken(externalAuthDTO);
+//            if (payload == null)
+//                return BadRequest("Invalid auth");
+
+//            var info = new UserLoginInfo(externalAuthDTO.Provider, payload.Subject, externalAuthDTO.Provider);
+
+//            var user = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
+//            if(user == null)
+//            {
+//                user = await userManager.FindByEmailAsync(payload.Email);
+//                if(user == null)
+//                {
+//                    user = new User
+//                    {
+//                        Email = payload.Email,
+//                        UserName = payload.Email,
+//                        FirstName = payload.Name,
+//                        LastName = payload.FamilyName
+//                    };
+//                    await userManager.CreateAsync(user);
+
+//                    await userManager.AddToRoleAsync(user, "User");
+//                    await userManager.AddLoginAsync(user, info);
+//                }
+//                else
+//                {
+//                    await userManager.AddLoginAsync(user, info);
+//                }
+//            }
+//            if (user == null)
+//                return BadRequest("Invalid authentication");
+
+//            var claims = new List<Claim>();
+//            claims.Add(new Claim(ClaimTypes.Name, user.UserName));
+//            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
+//            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
+
+//            var roles = await userManager.GetRolesAsync(user);
+//            foreach (var role in roles)
+//            {
+//                claims.Add(new Claim(ClaimTypes.Role, role));
+
+//            }
+
+//            var securityKey = new SymmetricSecurityKey(
+//                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
+//                );
+//            SigningCredentials signingCredentials = new SigningCredentials(
+//                    securityKey, SecurityAlgorithms.HmacSha256
+//                );
+
+//            JwtSecurityToken validToken = new JwtSecurityToken(
+//                issuer: configuration["JWT:IssuerValid"],
+//                audience: configuration["JWT:AudianceValid"],
+//                claims: claims,
+//                expires: DateTime.Now.AddHours(24),
+//                signingCredentials: signingCredentials
+//                );
+//            return Ok(new
+//            {
+//                message = "Logged in successfully using google",
+//                token = new JwtSecurityTokenHandler().WriteToken(validToken),
+//                expires = validToken.ValidTo
+//            });
+//;       }
+
+
+        [HttpPost("SignInWithGoogle")]
+        public async Task<IActionResult> LoginWithGoogle()
         {
-            var payload = await jwtHandler.VerifyGoogleToken(externalAuthDTO);
-            if (payload == null)
-                return BadRequest("Invalid auth");
+            //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
+            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
+            return new ChallengeResult("Google", properties);
+        }
 
-            var info = new UserLoginInfo(externalAuthDTO.Provider, payload.Subject, externalAuthDTO.Provider);
-
-            var user = await userManager.FindByLoginAsync(info.LoginProvider, info.ProviderKey);
-            if(user == null)
+        [HttpGet("signin-google")]
+        [Authorize]
+        public async Task<IActionResult> HandleGoogleResponse()
+        {
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
             {
-                user = await userManager.FindByEmailAsync(payload.Email);
-                if(user == null)
+                ModelState.AddModelError(string.Empty, "Error loading external information");
+                return BadRequest("Couldn't get user info");
+            }
+
+            var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+                info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (signInResutl.Succeeded)
+                return Ok(signInResutl);
+
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
                 {
-                    user = new User
+
+                    var user = await userManager.FindByEmailAsync(email);
+                    if (user == null)
                     {
-                        Email = payload.Email,
-                        UserName = payload.Email,
-                        FirstName = payload.Name,
-                        LastName = payload.FamilyName
-                    };
-                    await userManager.CreateAsync(user);
-
-                    await userManager.AddToRoleAsync(user, "User");
+                        user = new User
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+                        };
+                        await userManager.CreateAsync(user);
+                    }
                     await userManager.AddLoginAsync(user, info);
-                }
-                else
-                {
-                    await userManager.AddLoginAsync(user, info);
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return Ok(signInResutl);
                 }
             }
-            if (user == null)
-                return BadRequest("Invalid authentication");
-
-            var claims = new List<Claim>();
-            claims.Add(new Claim(ClaimTypes.Name, user.UserName));
-            claims.Add(new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()));
-            claims.Add(new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()));
-
-            var roles = await userManager.GetRolesAsync(user);
-            foreach (var role in roles)
-            {
-                claims.Add(new Claim(ClaimTypes.Role, role));
-
-            }
-
-            var securityKey = new SymmetricSecurityKey(
-                    Encoding.UTF8.GetBytes(configuration["JWT:SecretKey"])
-                );
-            SigningCredentials signingCredentials = new SigningCredentials(
-                    securityKey, SecurityAlgorithms.HmacSha256
-                );
-
-            JwtSecurityToken validToken = new JwtSecurityToken(
-                issuer: configuration["JWT:IssuerValid"],
-                audience: configuration["JWT:AudianceValid"],
-                claims: claims,
-                expires: DateTime.Now.AddHours(24),
-                signingCredentials: signingCredentials
-                );
-            return Ok(new
-            {
-                message = "Logged in successfully using google",
-                token = new JwtSecurityTokenHandler().WriteToken(validToken),
-                expires = validToken.ValidTo
-            });
-;       }
-
-
-        //[HttpPost("SignInWithGoogle")]
-        //public async Task<IActionResult> LoginWithGoogle()
-        //{
-        //    //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
-        //    var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
-        //    return new ChallengeResult("Google", properties);
-        //}
-
-        //[HttpGet("signin-google")]
-        //[Authorize]
-        //public async Task<IActionResult> HandleGoogleResponse()
-        //{
-        //    var info = await signInManager.GetExternalLoginInfoAsync();
-        //    if (info == null)
-        //    {
-        //        ModelState.AddModelError(string.Empty, "Error loading external information");
-        //        return BadRequest("Couldn't get user info");
-        //    }
-
-        //    var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-        //        info.ProviderKey,isPersistent: false,bypassTwoFactor:true);
-        //    if(signInResutl.Succeeded)
-        //        return Ok(signInResutl);
-
-        //    else
-        //    {
-        //        var email  =info.Principal.FindFirstValue(ClaimTypes.Email);
-        //        if(email != null)
-        //        {
-
-        //            var user = await userManager.FindByEmailAsync(email);
-        //            if(user == null)
-        //            {
-        //                user = new User
-        //                {
-        //                    UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-        //                    Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-        //                    FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
-        //                    LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
-        //                };
-        //                await userManager.CreateAsync(user);
-        //            }
-        //            await userManager.AddLoginAsync(user, info);
-        //            await signInManager.SignInAsync(user, isPersistent: false);
-        //            return Ok(signInResutl);
-        //        }
-        //    }
-        //    return BadRequest();
-        //}
+            return BadRequest();
+        }
 
 
         [HttpPost("Logout")]
