@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Authentication.Google;
 using Microsoft.AspNetCore.Authorization;
-//using Microsoft.AspNetCore.Cors;
+using Microsoft.AspNetCore.Cors;
 using System.Web.Http.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
@@ -22,7 +22,7 @@ namespace Recipe_Generator.Controllers
     [Route("api/[controller]")]
     [ApiController]
     [AllowAnonymous]
-    [EnableCors(origins:"*" , headers:"*" ,methods:"*")]
+    [System.Web.Http.Cors.EnableCors(origins:"*" , headers:"*" ,methods:"*")]
     public class UserController : ControllerBase
     {
         private readonly UserManager<User> userManager;
@@ -239,16 +239,11 @@ namespace Recipe_Generator.Controllers
         {
             //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
             var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
-            var res = new ChallengeResult("Google", properties);
-            Response.Headers.Append("Access-Control-Allow-Origin", "*");
-            Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
-            Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
-
-            return res;
+            return new ChallengeResult("Google", properties);
         }
 
         [HttpGet("signin-google")]
-        [Authorize]
+      //  [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
             var info = await signInManager.GetExternalLoginInfoAsync();
