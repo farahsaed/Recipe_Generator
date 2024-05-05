@@ -239,7 +239,12 @@ namespace Recipe_Generator.Controllers
         {
             //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
             var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
-            return new ChallengeResult("Google", properties);
+            var res = new ChallengeResult("Google", properties);
+            Response.Headers.Append("Access-Control-Allow-Origin", "*");
+            Response.Headers.Append("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+            Response.Headers.Append("Access-Control-Allow-Headers", "Content-Type, Authorization");
+
+            return res;
         }
 
         [HttpGet("signin-google")]
