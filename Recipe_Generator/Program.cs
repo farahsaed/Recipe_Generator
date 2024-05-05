@@ -83,7 +83,6 @@ internal class Program
                 var googleAuth = builder.Configuration.GetSection("ExternalAuth:Google");
                 options.ClientId = googleAuth["ClientID"];
                 options.ClientSecret = googleAuth["ClientSecret"];
-                options.CallbackPath = googleAuth["CallBackPath"];
             });
 
         var app = builder.Build();
