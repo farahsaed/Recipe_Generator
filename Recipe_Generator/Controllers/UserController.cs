@@ -254,47 +254,47 @@ namespace Recipe_Generator.Controllers
         //  [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
-            var result = await HttpContext.AuthenticateAsync();
-            if (result.Succeeded)
-                return Ok(result);
+            //var result = await HttpContext.AuthenticateAsync();
+            //if (result.Succeeded)
+            //    return Ok(result);
 
-            return BadRequest(result);
-            //var info = await signInManager.GetExternalLoginInfoAsync();
-            //if (info == null)
-            //{
-            //    ModelState.AddModelError(string.Empty, "Error loading external information");
-            //    return BadRequest("Couldn't get user info");
-            //}
+            //return BadRequest(result);
+            var info = await signInManager.GetExternalLoginInfoAsync();
+            if (info == null)
+            {
+                ModelState.AddModelError(string.Empty, "Error loading external information");
+                return BadRequest("Couldn't get user info");
+            }
 
-            //var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-            //    info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
-            //if (signInResutl.Succeeded)
-            //    return Ok(signInResutl);
+            var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+                info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            if (signInResutl.Succeeded)
+                return Ok(signInResutl);
 
-            //else
-            //{
-            //    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-            //    if (email != null)
-            //    {
+            else
+            {
+                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+                if (email != null)
+                {
 
-            //        var user = await userManager.FindByEmailAsync(email);
-            //        if (user == null)
-            //        {
-            //            user = new User
-            //            {
-            //                UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-            //                Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-            //                FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
-            //                LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
-            //            };
-            //            await userManager.CreateAsync(user);
-            //        }
-            //        await userManager.AddLoginAsync(user, info);
-            //        await signInManager.SignInAsync(user, isPersistent: false);
-            //        return Ok(signInResutl);
-            //    }
-            //}
-            //return BadRequest();
+                    var user = await userManager.FindByEmailAsync(email);
+                    if (user == null)
+                    {
+                        user = new User
+                        {
+                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+                        };
+                        await userManager.CreateAsync(user);
+                    }
+                    await userManager.AddLoginAsync(user, info);
+                    await signInManager.SignInAsync(user, isPersistent: false);
+                    return Ok(signInResutl);
+                }
+            }
+            return BadRequest();
         }
 
 
