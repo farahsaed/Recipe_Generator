@@ -241,9 +241,12 @@ namespace Recipe_Generator.Controllers
 
         public async Task<IActionResult> LoginWithGoogle()
         {
-            //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
-            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl: Url.Action(nameof(HandleGoogleResponse)));
-            return new ChallengeResult("Google", properties);
+            ////var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
+            //var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl: Url.Action(nameof(HandleGoogleResponse)));
+            //return new ChallengeResult("Google", properties);
+            var redirectUrl = Url.Action(nameof(HandleGoogleResponse));
+            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl);
+            return Challenge(properties, "Google");
         }
 
         [HttpGet("signin-google")]
@@ -251,42 +254,47 @@ namespace Recipe_Generator.Controllers
         //  [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
-            var info = await signInManager.GetExternalLoginInfoAsync();
-            if (info == null)
-            {
-                ModelState.AddModelError(string.Empty, "Error loading external information");
-                return BadRequest("Couldn't get user info");
-            }
+            var result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+                return Ok(result);
 
-            var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
-                info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
-            if (signInResutl.Succeeded)
-                return Ok(signInResutl);
+            return BadRequest(result);
+            //var info = await signInManager.GetExternalLoginInfoAsync();
+            //if (info == null)
+            //{
+            //    ModelState.AddModelError(string.Empty, "Error loading external information");
+            //    return BadRequest("Couldn't get user info");
+            //}
 
-            else
-            {
-                var email = info.Principal.FindFirstValue(ClaimTypes.Email);
-                if (email != null)
-                {
+            //var signInResutl = await signInManager.ExternalLoginSignInAsync(info.LoginProvider,
+            //    info.ProviderKey, isPersistent: false, bypassTwoFactor: true);
+            //if (signInResutl.Succeeded)
+            //    return Ok(signInResutl);
 
-                    var user = await userManager.FindByEmailAsync(email);
-                    if (user == null)
-                    {
-                        user = new User
-                        {
-                            UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
-                            Email = info.Principal.FindFirstValue(ClaimTypes.Email),
-                            FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
-                            LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
-                        };
-                        await userManager.CreateAsync(user);
-                    }
-                    await userManager.AddLoginAsync(user, info);
-                    await signInManager.SignInAsync(user, isPersistent: false);
-                    return Ok(signInResutl);
-                }
-            }
-            return BadRequest();
+            //else
+            //{
+            //    var email = info.Principal.FindFirstValue(ClaimTypes.Email);
+            //    if (email != null)
+            //    {
+
+            //        var user = await userManager.FindByEmailAsync(email);
+            //        if (user == null)
+            //        {
+            //            user = new User
+            //            {
+            //                UserName = info.Principal.FindFirstValue(ClaimTypes.Email),
+            //                Email = info.Principal.FindFirstValue(ClaimTypes.Email),
+            //                FirstName = info.Principal.FindFirstValue(ClaimTypes.GivenName),
+            //                LastName = info.Principal.FindFirstValue(ClaimTypes.Surname)
+            //            };
+            //            await userManager.CreateAsync(user);
+            //        }
+            //        await userManager.AddLoginAsync(user, info);
+            //        await signInManager.SignInAsync(user, isPersistent: false);
+            //        return Ok(signInResutl);
+            //    }
+            //}
+            //return BadRequest();
         }
 
 
