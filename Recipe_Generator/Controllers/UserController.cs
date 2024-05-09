@@ -237,6 +237,8 @@ namespace Recipe_Generator.Controllers
 
 
         [HttpPost("SignInWithGoogle")]
+        [Microsoft.AspNetCore.Cors.EnableCors("_myAllowSpecificOrigins")]
+
         public async Task<IActionResult> LoginWithGoogle()
         {
             //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
