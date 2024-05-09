@@ -7,6 +7,7 @@ using System.Web.Http.Cors;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.IdentityModel.Tokens;
+using Microsoft.AspNetCore.Cors;
 using Recipe_Generator.Data;
 using Recipe_Generator.DTO;
 using Recipe_Generator.Interface;
@@ -14,6 +15,7 @@ using Recipe_Generator.Models;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
+
 
 using JwtRegisteredClaimNames = Microsoft.IdentityModel.JsonWebTokens.JwtRegisteredClaimNames;
 
@@ -238,12 +240,13 @@ namespace Recipe_Generator.Controllers
         public async Task<IActionResult> LoginWithGoogle()
         {
             //var properties = new AuthenticationProperties { RedirectUri = Url.Action(nameof(HandleGoogleResponse)) };
-            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", Url.Action(nameof(HandleGoogleResponse)));
+            var properties = signInManager.ConfigureExternalAuthenticationProperties("Google", redirectUrl: Url.Action(nameof(HandleGoogleResponse)));
             return new ChallengeResult("Google", properties);
         }
 
         [HttpGet("signin-google")]
-      //  [Authorize]
+        [Microsoft.AspNetCore.Cors.EnableCors("_myAllowSpecificOrigins")]
+        //  [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
             var info = await signInManager.GetExternalLoginInfoAsync();
