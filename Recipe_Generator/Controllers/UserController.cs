@@ -254,11 +254,56 @@ namespace Recipe_Generator.Controllers
         //  [Authorize]
         public async Task<IActionResult> HandleGoogleResponse()
         {
-            //var result = await HttpContext.AuthenticateAsync();
-            //if (result.Succeeded)
-            //    return Ok(result);
 
-            //return BadRequest(result);
+            //var authenticateResult = await HttpContext.AuthenticateAsync("Google");
+
+            //if (!authenticateResult.Succeeded)
+            //{
+            //    // Authentication failed
+            //    return BadRequest("Login failed");
+            //}
+
+            //var idToken = authenticateResult.Principal.FindFirstValue("id_token");
+
+            //// Validate and decode the ID token
+            //var validationParameters = new TokenValidationParameters
+            //{
+            //    ValidateIssuer = true,
+            //    ValidIssuer = "accounts.google.com", // Google's issuer
+            //    ValidateAudience = true,
+            //    ValidAudience = "your-client-id", // Your Google OAuth client ID
+            //    ValidateLifetime = true,
+            //    ClockSkew = TimeSpan.Zero
+            //};
+
+            //var handler = new JwtSecurityTokenHandler();
+            //var userClaims = handler.ValidateToken(idToken, validationParameters, out var validatedToken);
+
+            //// Extract user information
+            //var userId = userClaims.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            //var userEmail = userClaims.FindFirst(ClaimTypes.Email)?.Value;
+            //// Other user information...
+
+            //// Authenticate the user in your application
+            //// Example: Set authentication cookie
+            //var claimsIdentity = new ClaimsIdentity((IEnumerable<Claim>?)userClaims, "Cookies");
+            //var authProperties = new AuthenticationProperties
+            //{
+            //    // Set additional properties if needed
+            //};
+            //await HttpContext.SignInAsync("Cookies", new ClaimsPrincipal(claimsIdentity), authProperties);
+
+            //return Ok("Logged in successfully");
+
+            /**************************/
+
+            var result = await HttpContext.AuthenticateAsync();
+            if (result.Succeeded)
+                return Ok(result);
+
+            /***********************************/
+
+            return BadRequest(result);
             var info = await signInManager.GetExternalLoginInfoAsync();
             if (info == null)
             {
