@@ -91,7 +91,7 @@ namespace Recipe_Generator.Controllers
                 {
                     try
                     {
-                        var mailAddress = new System.Net.Mail.MailAddress(user.Email);
+                        var mailAddress = new System.Net.Mail.MailAddress(email);
                         return true;
                     }
                     catch
@@ -100,7 +100,10 @@ namespace Recipe_Generator.Controllers
                     }
                 }
 
-                await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+                if(IsValidEmail(user.Email)) 
+                {
+                    await emailSender.SendEmailGreeting(user.Email, user.FirstName);
+                }
             }
 
             if (result.Succeeded)
