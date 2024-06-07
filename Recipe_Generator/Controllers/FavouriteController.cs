@@ -34,6 +34,7 @@ namespace Recipe_Generator.Controllers
             var userId = userManager.GetUserId(HttpContext.User);
             if(userId != null)
             {
+
                 List<Favourite> favouriteList = await _context.Favourites
                .Include(r => r.Recipe)
                .Include(u => u.User)
@@ -78,12 +79,22 @@ namespace Recipe_Generator.Controllers
 
             if(userId != null)
             {
+                var existingFavorite = await _context.Favourites
+                .FirstOrDefaultAsync(f => f.User.Id == userId && f.RecipeId == favoriteDTO.RecipeId);
+
+                if (existingFavorite != null)
+                {
+                    return BadRequest("You already added this to favourite");
+                }
+
                 favourite.User = user;
                 favourite.User.Id = userId;
                 favourite.RecipeId = favoriteDTO.RecipeId;
 
                 if (ModelState.IsValid == true)
                 {
+                    
+                    //Favourite favourite2 = _context.Favourites.Include(u => u.User);
                     _context.Favourites.Add(favourite);
                     await _context.SaveChangesAsync();
                     string url = Url.Link("GetOneFavourite", new { id = favoriteDTO.Id });
